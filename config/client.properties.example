@@ -1,0 +1,22 @@
+serverHost=tunnel.example.com
+controlPort=7000
+workPort=7001
+clientId=home-pc
+tokenFile=/etc/tunnel/token
+# Optional independent credential; overrides tokenFile when set.
+# clientTokenFile=/etc/tunnel/client-home-pc.token
+caFile=/etc/tunnel/ca.crt
+map.ssh=22022,127.0.0.1,22
+map.web=28080,127.0.0.1,8080
+# UDP mapping keeps datagram boundaries: udp.dns=25353,127.0.0.1,53
+# HTTP Host routes use the server httpPort: http.web=example.com|www.example.com,127.0.0.1,8080
+# Optional URL prefixes, Host rewrite and per-proxy controls:
+# http.web.locations=/api|/health
+# http.web.hostRewrite=internal.example
+# http.web.basicUser=admin
+# http.web.basicPassword=change-me
+# balance.web=web-group,shared-key
+# health.web=tcp,3,3,10
+# bandwidth.web=1MB
+# muxPoolSize=2
+# maxPendingBytes=8388608

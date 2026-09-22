@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>穿透控制台</title>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;600;700;800&display=swap');
+
+      :root {
+        --ink: #d9f5ee;
+        --muted: #7eaaa4;
+        --panel: #102522;
+        --line: #244741;
+        --hot: #d4fa70;
+        --blue: #74c7ff;
+        --red: #ff8b82;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        color: var(--ink);
+        background: #071311;
+        font-family: Manrope, sans-serif;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.16;
+        background-image:
+          linear-gradient(rgba(212, 250, 112, 0.08) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(212, 250, 112, 0.08) 1px, transparent 1px);
+        background-size: 42px 42px;
+        mask-image: linear-gradient(to bottom, black, transparent 80%);
+      }
+
+      .shell {
+        position: relative;
+        width: min(1240px, calc(100% - 44px));
+        margin: auto;
+        padding: 36px 0 64px;
+      }
+
+      header {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        padding-bottom: 30px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .eyebrow {
+        color: var(--hot);
+        font: 500 12px 'DM Mono', monospace;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 14px 0 0;
+        font-size: clamp(32px, 5vw, 64px);
+        line-height: 0.95;
+        letter-spacing: -0.06em;
+      }
+
+      .stamp {
+        color: var(--muted);
+        font: 12px 'DM Mono', monospace;
+        text-align: right;
+      }
+
+      .signal {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        margin-top: 18px;
+        color: var(--hot);
+        font: 12px 'DM Mono', monospace;
+      }
+
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 99px;
+        background: var(--hot);
+        box-shadow: 0 0 16px var(--hot);
+      }
+
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin: 24px 0;
+      }
+
+      .metric,
+      .card {
+        border: 1px solid var(--line);
+        background: linear-gradient(135deg, rgba(27, 61, 55, 0.8), rgba(11, 30, 27, 0.86));
+      }
+
+      .metric {
+        min-height: 106px;
+        padding: 18px 20px;
+      }
+
+      .metric label {
+        display: block;
+        color: var(--muted);
+        font: 11px 'DM Mono', monospace;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+
+      .metric strong {
+        display: block;
+        margin-top: 9px;
+        font-size: 38px;
+        letter-spacing: -0.06em;
+      }
+
+      .card {
+        margin-top: 12px;
+        padding: 20px;
+      }
+
+      .card-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+      }
+
+      h2 {
+        margin: 0;
+        font-size: 14px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .refresh {
+        color: var(--muted);
+        font: 11px 'DM Mono', monospace;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+
+      th {
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--line);
+        color: var(--muted);
+        font: 11px 'DM Mono', monospace;
+        font-weight: 400;
+        text-align: left;
+        text-transform: uppercase;
+      }
+
+      td {
+        padding: 14px 12px;
+        border-bottom: 1px solid rgba(36, 71, 65, 0.66);
+        vertical-align: top;
+      }
+
+      tr:last-child td {
+        border-bottom: 0;
+      }
+
+      .pill {
+        display: inline-flex;
+        padding: 4px 8px;
+        border: 1px solid #38685f;
+        color: var(--blue);
+        font: 11px 'DM Mono', monospace;
+      }
+
+      .pill.ok {
+        border-color: #627b3b;
+        color: var(--hot);
+      }
+
+      .mono {
+        font-family: 'DM Mono', monospace;
+      }
+
+      .sub {
+        margin-top: 3px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      button {
+        padding: 7px 10px;
+        border: 1px solid #6d4f4a;
+        color: var(--red);
+        background: transparent;
+        cursor: pointer;
+        font: 11px 'DM Mono', monospace;
+      }
+
+      button:hover {
+        background: rgba(255, 139, 130, 0.12);
+      }
+
+      .empty {
+        padding: 36px 12px;
+        color: var(--muted);
+        font: 12px 'DM Mono', monospace;
+        text-align: center;
+      }
+
+      footer {
+        margin-top: 24px;
+        color: #52756e;
+        font: 11px 'DM Mono', monospace;
+      }
+
+      @media (max-width: 700px) {
+        .shell {
+          width: calc(100% - 28px);
+          padding-top: 24px;
+        }
+
+        header {
+          display: block;
+        }
+
+        .stamp {
+          margin-top: 18px;
+          text-align: left;
+        }
+
+        .metrics {
+          grid-template-columns: 1fr;
+        }
+
+        .card {
+          overflow-x: auto;
+        }
+
+        table {
+          min-width: 680px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <header>
+        <div>
+          <div class="eyebrow">/ tunnel · operations</div>
+          <h1>穿透控制台</h1>
+          <div class="signal">
+            <span class="dot"></span>
+            <span id="health">正在连接服务端</span>
+          </div>
+        </div>
+        <div class="stamp">
+          LIVE CONTROL PLANE<br />
+          <span id="updated">—</span>
+        </div>
+      </header>
+
+      <section class="metrics">
+        <div class="metric">
+          <label>在线客户端</label>
+          <strong id="clients">—</strong>
+        </div>
+        <div class="metric">
+          <label>映射规则</label>
+          <strong id="bindings">—</strong>
+        </div>
+        <div class="metric">
+          <label>活动流</label>
+          <strong id="streams">—</strong>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2>连接节点</h2>
+          <span class="refresh">每 3 秒刷新</span>
+        </div>
+        <div id="nodes" class="empty">等待数据…</div>
+      </section>
+
+      <footer>端口、证书和身份凭据仍由部署配置管理；此面板用于运行态观察与客户端断开。</footer>
+    </main>
+
+    <script>
+      const $ = (id) => document.getElementById(id);
+
+      function esc(value) {
+        return String(value).replace(/[&<>"']/g, (character) => ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#39;'
+        })[character]);
+      }
+
+      async function apiFetch(url, options = {}) {
+        const headers = new Headers(options.headers || {});
+        const token = localStorage.getItem('tunnelManagementToken');
+        if (token) headers.set('Authorization', 'Bearer ' + token);
+
+        let response = await fetch(url, { ...options, headers });
+        if (response.status === 401) {
+          const nextToken = prompt('请输入管理 API Token');
+          if (!nextToken) return response;
+          localStorage.setItem('tunnelManagementToken', nextToken);
+          headers.set('Authorization', 'Bearer ' + nextToken);
+          response = await fetch(url, { ...options, headers });
+        }
+        return response;
+      }
+
+      async function refresh() {
+        try {
+          const response = await apiFetch('/api/status', { cache: 'no-store' });
+          if (!response.ok) throw new Error('status request failed');
+
+          const data = await response.json();
+          let bindingCount = 0;
+          let streamCount = 0;
+
+          data.clients.forEach((client) => {
+            bindingCount += client.bindings.length;
+            streamCount += client.streams;
+          });
+
+          $('health').textContent = '服务端在线';
+          $('health').style.color = 'var(--hot)';
+          $('clients').textContent = data.clients.length;
+          $('bindings').textContent = bindingCount;
+          $('streams').textContent = streamCount;
+          $('updated').textContent = new Date().toLocaleTimeString();
+
+          $('nodes').innerHTML = data.clients.length
+            ? '<table><thead><tr><th>客户端</th><th>通道</th><th>映射</th><th>动作</th></tr></thead><tbody>'
+              + data.clients.map((client) => '<tr>'
+                + '<td><span class="mono">' + esc(client.id) + '</span>'
+                + '<div class="sub">' + client.streams + ' active streams</div></td>'
+                + '<td><span class="pill ' + (client.mux ? 'ok' : '') + '">'
+                + (client.mux ? 'MUX READY' : 'RECONNECTING') + '</span></td>'
+                + '<td>' + client.bindings.map((binding) => '<span class="pill">'
+                  + esc(binding.kind) + ' · ' + esc(binding.name)
+                  + (binding.port ? ' : ' + binding.port : '')
+                  + (binding.hosts.length ? ' · ' + esc(binding.hosts.join(', ')) : '')
+                  + '</span> ').join('') + '</td>'
+                + '<td><button onclick="disconnect(\'' + encodeURIComponent(client.id)
+                + '\')">DISCONNECT</button></td></tr>').join('')
+              + '</tbody></table>'
+            : '<div class="empty">没有客户端在线</div>';
+        } catch (error) {
+          $('health').textContent = '管理 API 不可用';
+          $('health').style.color = 'var(--red)';
+        }
+      }
+
+      async function disconnect(id) {
+        if (confirm('断开客户端 ' + decodeURIComponent(id) + '？')) {
+          await apiFetch('/api/clients/' + id + '/disconnect', { method: 'POST' });
+          refresh();
+        }
+      }
+
+      refresh();
+      setInterval(refresh, 3000);
+    </script>
+  </body>
+</html>

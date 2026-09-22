@@ -1,0 +1,27 @@
+bindHost=0.0.0.0
+controlPort=7000
+workPort=7001
+publicBindHost=0.0.0.0
+allowedPortStart=20000
+allowedPortEnd=40000
+tokenFile=/etc/tunnel/token
+# For independent client identities, replace tokenFile with:
+# clientsFile=/etc/tunnel/clients.properties
+# Format: client-id=24+ character token
+certFile=/etc/tunnel/server.crt
+keyFile=/etc/tunnel/server.key
+httpPort=8080
+httpBindHost=0.0.0.0
+# Optional HTTPS termination and SNI/Host routing with the same server certificate.
+# httpsPort=8443
+# httpsBindHost=0.0.0.0
+managementPort=8088
+managementBindHost=127.0.0.1
+# Required when managementBindHost is not loopback:
+# managementTokenFile=/etc/tunnel/management-token
+# Persist mappings created through the management API.
+# storeFile=/var/lib/tunnel/mappings.properties
+# Number of independent mux work connections per client.
+# muxPoolSize=2
+# Backpressure queue per stream.
+# maxPendingBytes=8388608
