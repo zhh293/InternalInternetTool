@@ -37,6 +37,7 @@ java -cp target/tunnel-0.4.0.jar dev.tunnel.Client client.properties
 mvn package
 java -cp "target/test-classes;target/tunnel-0.4.0.jar" dev.tunnel.Smoke
 java -cp "target/test-classes;target/tunnel-0.4.0.jar" dev.tunnel.FeatureSmoke
+java -cp "target/test-classes;target/tunnel-0.4.0.jar" dev.tunnel.MuxKeepaliveSmoke
 ```
 
 Windows 的 classpath 分隔符是 `;`，Linux/macOS 使用 `:`。该测试目前需要手动执行，单独运行 `mvn test` 不会触发它。

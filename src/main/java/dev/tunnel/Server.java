@@ -722,6 +722,7 @@ public final class Server implements AutoCloseable {
         ctx.pipeline().remove("lines");
         ctx.pipeline().replace(this, "mux-decoder", new Mux.Decoder());
         ctx.pipeline().addLast("mux-encoder", new Mux.Encoder());
+        ctx.pipeline().addLast("mux-keepalive", new Mux.KeepaliveHandler());
         ctx.pipeline().addLast("mux", new MuxServerHandler(owner));
       } catch (IllegalArgumentException error) {
         Wire.sendError(ctx.channel(), errorCode(error), error.getMessage());

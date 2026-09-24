@@ -8,7 +8,7 @@ import java.security.SecureRandom;
 import java.util.UUID;
 
 final class Wire {
-  static final int PROTOCOL_VERSION = 1;
+  static final int PROTOCOL_VERSION = 2;
   static final int WORK_HEADER_BYTES = 48;
   private static final SecureRandom RANDOM = new SecureRandom();
 

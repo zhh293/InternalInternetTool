@@ -68,6 +68,7 @@ public final class Client implements AutoCloseable {
   private final java.util.Set<Channel> muxes = ConcurrentHashMap.newKeySet();
   private volatile boolean stopped;
   private volatile int retrySeconds = 1;
+  private volatile int muxRetrySeconds = 1;
 
   public Client(String configPath) throws Exception {
     this.settings = Settings.load(configPath);
@@ -207,6 +208,8 @@ public final class Client implements AutoCloseable {
 
   private void scheduleMuxRetry() {
     if (stopped || !muxRetryScheduled.compareAndSet(false, true)) return;
+    int delay = muxRetrySeconds;
+    muxRetrySeconds = Math.min(30, muxRetrySeconds * 2);
     group
         .next()
         .schedule(
@@ -214,8 +217,8 @@ public final class Client implements AutoCloseable {
               muxRetryScheduled.set(false);
               connectMux();
             },
-            1000,
-            TimeUnit.MILLISECONDS);
+            delay,
+            TimeUnit.SECONDS);
   }
 
   private int activeMuxCount() {
@@ -532,7 +535,9 @@ public final class Client implements AutoCloseable {
         ctx.pipeline().remove("lines");
         ctx.pipeline().replace(this, "mux-decoder", new Mux.Decoder());
         ctx.pipeline().addLast("mux-encoder", new Mux.Encoder());
+        ctx.pipeline().addLast("mux-keepalive", new Mux.KeepaliveHandler());
         ctx.pipeline().addLast("mux", new MuxClientHandler());
+        muxRetrySeconds = 1;
         flushWaiting();
         connectMux();
       } else {
