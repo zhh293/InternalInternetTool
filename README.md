@@ -13,6 +13,7 @@ mvn package
 ```
 
 产物 `target/tunnel-0.4.0.jar` 是包含依赖的 JAR；服务端和客户端使用不同的主类启动。
+`mvn test` 和 `mvn package` 会自动运行 TCP、功能和 mux 保活冒烟检查；需要跳过检查时可使用 `mvn -DskipTests package`。
 
 ## 准备配置
 
@@ -31,15 +32,29 @@ java -cp target/tunnel-0.4.0.jar dev.tunnel.Client client.properties
 
 ## 验证
 
-项目包含真实 TCP/TLS 集成测试 [Smoke.java](src/test/java/dev/tunnel/Smoke.java)。它验证小块二进制、1 MiB 往返、并发短连接和客户端重启恢复。测试会自行生成临时证书和配置，并选择空闲的本地端口，无须使用生产配置：
+项目包含真实 TCP/TLS 集成测试 [Smoke.java](src/test/java/dev/tunnel/Smoke.java)。它验证小块二进制、1 MiB 往返、并发短连接和客户端重启恢复。测试会自行生成临时证书和配置，并选择空闲的本地端口，无须使用生产配置。`mvn test` 会执行 TCP、功能和 mux 保活冒烟检查；`mvn package` 也会执行它们：
 
 ```sh
-mvn package
-java -cp "target/test-classes;target/tunnel-0.4.0.jar" dev.tunnel.Smoke
-java -cp "target/test-classes;target/tunnel-0.4.0.jar" dev.tunnel.FeatureSmoke
-java -cp "target/test-classes;target/tunnel-0.4.0.jar" dev.tunnel.MuxKeepaliveSmoke
+mvn test
 ```
 
-Windows 的 classpath 分隔符是 `;`，Linux/macOS 使用 `:`。该测试目前需要手动执行，单独运行 `mvn test` 不会触发它。
+下面手动运行的 Java 命令中，Windows classpath 分隔符为 `;`，Linux/macOS 使用 `:`。
+
+附加边界检查会验证 408/431 响应、持久化失败回滚和 512 条 UDP 流上限：
+
+```sh
+java -cp "target/test-classes;target/tunnel-0.4.0.jar" dev.tunnel.FeatureSmoke --limits
+```
+
+公网 UDP 映射每客户端最多保留 512 个逻辑流；等待本地连接建立期间，每流最多缓存 256 KiB，每客户端最多缓存 8 MiB，超限的数据报会丢弃。HTTP 入口要求在 15 秒内收到完整请求头，头部上限为 64 KiB。管理 API 的映射表单上限为 64 KiB。`health.<name>=http,...` 会向本地目标的 `/` 发起 HTTP GET，并把 2xx/3xx 响应视为健康；需要虚拟主机名时可配置 `http.<name>.hostRewrite`。
+
+性能基线可以运行 `PerformanceSmoke`（64 MiB 单流吞吐）和 `StressSmoke`（多客户端持续回环、CPU/堆采样）：
+
+```sh
+java -cp "target/test-classes;target/tunnel-0.4.0.jar" dev.tunnel.PerformanceSmoke
+java -cp "target/test-classes;target/tunnel-0.4.0.jar" dev.tunnel.StressSmoke 2 2 30 2
+```
+
+`StressSmoke` 参数依次是客户端数、每客户端连接数、持续秒数和 `muxPoolSize`。它是本机回环基线，不等价于公网 SLA；`muxPoolSize` 会影响单客户端的并发吞吐，应结合目标机器和真实网络单独压测。
 
 架构、协议、开发流程及后续扩展见 [开发文档.md](开发文档.md)。

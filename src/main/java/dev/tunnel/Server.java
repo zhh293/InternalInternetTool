@@ -54,6 +54,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /** Public endpoint and control-plane server. A client owns one TLS mux channel. */
 public final class Server implements AutoCloseable {
+  private static final int MAX_UDP_STREAMS_PER_CLIENT = 512;
+  private static final int MAX_UDP_PENDING_PER_STREAM = 256 * 1024;
+  private static final int MAX_UDP_PENDING_PER_CLIENT = 8 * 1024 * 1024;
   private final Settings settings;
   private final byte[] password;
   private final Map<String, byte[]> clientTokens;
@@ -66,7 +69,7 @@ public final class Server implements AutoCloseable {
   private final Map<Integer, PortGroup> ports = new ConcurrentHashMap<>();
   private final Map<String, List<Binding>> httpRoutes = new ConcurrentHashMap<>();
   private final String dynamicStoreFile;
-  private final Map<String, Map<String, DynamicStore.Spec>> dynamicMappings;
+  private volatile Map<String, Map<String, DynamicStore.Spec>> dynamicMappings;
   private final int muxPoolSize;
   private final int maxPendingBytes;
   private final AtomicInteger httpRoundRobin = new AtomicInteger();
@@ -514,11 +517,15 @@ public final class Server implements AutoCloseable {
   }
 
   private void sendData(Channel mux, int id, byte[] bytes) {
+    if (bytes.length <= Mux.MAX_PAYLOAD) {
+      mux.writeAndFlush(Mux.encode(mux.alloc(), id, Mux.DATA, bytes));
+      return;
+    }
     for (int offset = 0; offset < bytes.length; offset += Mux.MAX_PAYLOAD) {
       int length = Math.min(Mux.MAX_PAYLOAD, bytes.length - offset);
       byte[] part = new byte[length];
       System.arraycopy(bytes, offset, part, 0, length);
-      mux.writeAndFlush(new Mux.Frame(id, Mux.DATA, part));
+      mux.writeAndFlush(Mux.encode(mux.alloc(), id, Mux.DATA, part));
     }
   }
 
@@ -548,13 +555,18 @@ public final class Server implements AutoCloseable {
     if (stream == null) {
       UdpStream udp = owner.udpStreams.get(frame.streamId);
       if (udp == null || udp.closed.get()) return;
+      if (udp.mux != mux) return;
       if (frame.type == Mux.ACK) {
         udp.ready = true;
         synchronized (udp.pending) {
           for (byte[] bytes : udp.pending) sendData(mux, udp.id, bytes);
           udp.pending.clear();
+          udp.binding.owner.udpPendingBytes.addAndGet(-udp.pendingBytes);
+          udp.pendingBytes = 0;
         }
-      } else if (frame.type == Mux.DATA && udp.binding.listener != null) {
+      } else if (frame.type == Mux.DATA
+          && udp.binding.listener != null
+          && udp.binding.listener.isWritable()) {
         metrics.bytesToPublic.addAndGet(frame.payload.length);
         udp.binding.listener.writeAndFlush(
             new DatagramPacket(Unpooled.wrappedBuffer(frame.payload), udp.visitor));
@@ -566,11 +578,11 @@ public final class Server implements AutoCloseable {
       stream.mux = mux;
       stream.ready = true;
       if (stream.timer != null) stream.timer.cancel(false);
-      stream.visitor.config().setAutoRead(mux.isWritable());
       if (stream.initial != null) {
         sendData(mux, stream.id, stream.initial);
         stream.initial = null;
       }
+      stream.visitor.config().setAutoRead(mux.isWritable());
     } else if (frame.type == Mux.DATA) {
       if (stream.binding.kind == Settings.Rule.Kind.UDP) {
         if (stream.binding.listener != null && stream.visitorAddress != null) {
@@ -818,11 +830,15 @@ public final class Server implements AutoCloseable {
   }
 
   private final class HttpPublicHandler extends ChannelInboundHandlerAdapter {
+    private static final int MAX_HEADER_BYTES = 64 * 1024;
     private final boolean https;
-    private final ByteArrayOutputStream head = new ByteArrayOutputStream();
+    private ByteArrayOutputStream head = new ByteArrayOutputStream();
     private Stream stream;
     private boolean routed;
+    private boolean rejected;
     private String sniHost;
+    private ScheduledFuture<?> headerTimeout;
+    private int headerTerminatorState;
 
     HttpPublicHandler() {
       this(false);
@@ -833,23 +849,54 @@ public final class Server implements AutoCloseable {
     }
 
     @Override
+    public void channelActive(ChannelHandlerContext ctx) {
+      headerTimeout =
+          ctx.executor().schedule(
+              () -> {
+                if (!routed && ctx.channel().isActive())
+                  httpError(ctx, 408, "Request Timeout");
+              },
+              15,
+              TimeUnit.SECONDS);
+      ctx.fireChannelActive();
+    }
+
+    @Override
     public void channelRead(ChannelHandlerContext ctx, Object message) {
       ByteBuf buffer = (ByteBuf) message;
       try {
+        if (rejected) return;
         byte[] bytes = new byte[buffer.readableBytes()];
         buffer.readBytes(bytes);
         if (routed) {
-          forwardPublic(stream, Unpooled.wrappedBuffer(bytes));
+          if (stream != null) forwardPublic(stream, Unpooled.wrappedBuffer(bytes));
           return;
         }
-        if (head.size() + bytes.length > 64 * 1024) {
-          httpError(ctx, 431, "Request Header Fields Too Large");
-          return;
+        int firstBodyByte = -1;
+        for (int i = 0; i < bytes.length; i++) {
+          head.write(bytes[i]);
+          if (head.size() > MAX_HEADER_BYTES) {
+            httpError(ctx, 431, "Request Header Fields Too Large");
+            return;
+          }
+          byte value = bytes[i];
+          if (headerTerminatorState == 0) headerTerminatorState = value == '\r' ? 1 : 0;
+          else if (headerTerminatorState == 1)
+            headerTerminatorState = value == '\n' ? 2 : value == '\r' ? 1 : 0;
+          else if (headerTerminatorState == 2)
+            headerTerminatorState = value == '\r' ? 3 : 0;
+          else headerTerminatorState = value == '\n' ? 4 : value == '\r' ? 1 : 0;
+          if (headerTerminatorState == 4) {
+            firstBodyByte = i + 1;
+            break;
+          }
         }
-        head.write(bytes, 0, bytes.length);
-        byte[] all = head.toByteArray();
-        int end = indexOf(all, new byte[] {'\r', '\n', '\r', '\n'});
-        if (end < 0) return;
+        if (firstBodyByte < 0) return;
+        byte[] headers = head.toByteArray();
+        byte[] all = new byte[headers.length + bytes.length - firstBodyByte];
+        System.arraycopy(headers, 0, all, 0, headers.length);
+        System.arraycopy(bytes, firstBodyByte, all, headers.length, bytes.length - firstBodyByte);
+        int end = headers.length - 4;
         String text = new String(all, 0, end + 4, StandardCharsets.ISO_8859_1);
         String host = null;
         for (String line : text.split("\\r\\n")) {
@@ -881,6 +928,8 @@ public final class Server implements AutoCloseable {
                           (binding.basicUser + ":" + binding.basicPassword)
                               .getBytes(StandardCharsets.ISO_8859_1));
           if (!expected.equals(authorization)) {
+            rejected = true;
+            if (headerTimeout != null) headerTimeout.cancel(false);
             ctx.writeAndFlush(
                     Unpooled.wrappedBuffer(
                         ("HTTP/1.1 401 Unauthorized\r\n"
@@ -893,6 +942,8 @@ public final class Server implements AutoCloseable {
           }
         }
         routed = true;
+        if (headerTimeout != null) headerTimeout.cancel(false);
+        head = null;
         if (binding.bandwidthBytesPerSecond > 0 && ctx.pipeline().get("traffic") == null)
           ctx.pipeline()
               .addFirst(
@@ -938,6 +989,9 @@ public final class Server implements AutoCloseable {
     }
 
     private void httpError(ChannelHandlerContext ctx, int code, String reason) {
+      if (rejected) return;
+      rejected = true;
+      if (headerTimeout != null) headerTimeout.cancel(false);
       byte[] body = (code + " " + reason + "\n").getBytes(StandardCharsets.UTF_8);
       String response =
           "HTTP/1.1 "
@@ -962,20 +1016,32 @@ public final class Server implements AutoCloseable {
     }
 
     private byte[] prepareRequest(byte[] request, Binding binding, ChannelHandlerContext ctx) {
-      String text = new String(request, StandardCharsets.ISO_8859_1);
+      int headerEnd = indexOf(request, new byte[] {'\r', '\n', '\r', '\n'});
+      String[] lines =
+          new String(request, 0, headerEnd, StandardCharsets.ISO_8859_1).split("\\r\\n");
       String forwarded =
           "X-Forwarded-For: "
               + ((InetSocketAddress) ctx.channel().remoteAddress()).getAddress().getHostAddress();
-      if (!text.toLowerCase().contains("\r\nx-forwarded-for:"))
-        text = text.replace("\r\n\r\n", "\r\n" + forwarded + "\r\n\r\n");
-      if (!binding.hostRewrite.isEmpty()) {
-        text = text.replaceFirst("(?im)^Host:.*$", "Host: " + binding.hostRewrite);
+      StringBuilder rebuilt = new StringBuilder();
+      for (String line : lines) {
+        int colon = line.indexOf(':');
+        String name = colon > 0 ? line.substring(0, colon).trim() : "";
+        if ("x-forwarded-for".equalsIgnoreCase(name)) continue;
+        if ("host".equalsIgnoreCase(name) && !binding.hostRewrite.isEmpty())
+          line = "Host: " + binding.hostRewrite;
+        rebuilt.append(line).append("\r\n");
       }
-      return text.getBytes(StandardCharsets.ISO_8859_1);
+      rebuilt.append(forwarded).append("\r\n\r\n");
+      byte[] headers = rebuilt.toString().getBytes(StandardCharsets.ISO_8859_1);
+      byte[] result = new byte[headers.length + request.length - headerEnd - 4];
+      System.arraycopy(headers, 0, result, 0, headers.length);
+      System.arraycopy(request, headerEnd + 4, result, headers.length, request.length - headerEnd - 4);
+      return result;
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
+      if (headerTimeout != null) headerTimeout.cancel(false);
       if (stream != null) closeStream(stream, true);
     }
 
@@ -1000,23 +1066,24 @@ public final class Server implements AutoCloseable {
       if (binding == null || binding.closed.get() || !binding.healthy) {
         binding = chooseBinding(group);
         if (binding == null) return;
-        group.udpAffinity.put(key, binding);
       }
       UdpStream stream = binding.udpStreams.get(key);
       if (stream == null || stream.closed.get()) {
+        Channel mux = binding.owner.selectMux();
+        if (mux == null || !reserve(binding.owner.activeUdpStreams, 1, MAX_UDP_STREAMS_PER_CLIENT))
+          return;
         stream = new UdpStream(nextId(binding.owner), binding, address);
         binding.udpStreams.put(key, stream);
         binding.owner.udpStreams.put(stream.id, stream);
+        group.udpAffinity.put(key, binding);
         metrics.streamsOpened.incrementAndGet();
         UdpStream selected = stream;
         stream.timer =
             ctx.executor().schedule(() -> closeUdpStream(selected), 120, TimeUnit.SECONDS);
-        Channel mux = binding.owner.selectMux();
         stream.mux = mux;
-        if (mux != null)
-          mux.writeAndFlush(
-              new Mux.Frame(
-                  stream.id, Mux.OPEN_UDP, binding.name.getBytes(StandardCharsets.UTF_8)));
+        mux.writeAndFlush(
+            new Mux.Frame(
+                stream.id, Mux.OPEN_UDP, binding.name.getBytes(StandardCharsets.UTF_8)));
       }
       stream.lastSeen = System.nanoTime();
       if (stream.timer != null) stream.timer.cancel(false);
@@ -1026,16 +1093,34 @@ public final class Server implements AutoCloseable {
       packet.content().getBytes(packet.content().readerIndex(), bytes);
       if (!binding.allowDatagram(bytes.length)) return;
       metrics.bytesFromPublic.addAndGet(bytes.length);
-      if (stream.ready && stream.mux != null) sendData(stream.mux, stream.id, bytes);
-      else stream.pending.add(bytes);
+      if (stream.ready) {
+        if (stream.mux != null && stream.mux.isActive() && stream.mux.isWritable())
+          sendData(stream.mux, stream.id, bytes);
+      } else {
+        synchronized (stream.pending) {
+          if (!stream.closed.get()
+              && stream.pendingBytes + bytes.length <= MAX_UDP_PENDING_PER_STREAM
+              && reserve(binding.owner.udpPendingBytes, bytes.length, MAX_UDP_PENDING_PER_CLIENT)) {
+            stream.pending.add(bytes);
+            stream.pendingBytes += bytes.length;
+          }
+        }
+      }
     }
   }
 
   private void closeUdpStream(UdpStream stream) {
     if (!stream.closed.compareAndSet(false, true)) return;
+    if (stream.timer != null) stream.timer.cancel(false);
     metrics.streamsClosed.incrementAndGet();
     stream.binding.udpStreams.remove(String.valueOf(stream.visitor), stream);
     stream.binding.owner.udpStreams.remove(stream.id, stream);
+    stream.binding.owner.activeUdpStreams.decrementAndGet();
+    synchronized (stream.pending) {
+      stream.binding.owner.udpPendingBytes.addAndGet(-stream.pendingBytes);
+      stream.pending.clear();
+      stream.pendingBytes = 0;
+    }
     if (stream.binding.group != null)
       stream.binding.group.udpAffinity.remove(String.valueOf(stream.visitor), stream.binding);
     if (stream.mux != null && stream.mux.isActive())
@@ -1049,6 +1134,14 @@ public final class Server implements AutoCloseable {
       return session.nextStream.getAndIncrement();
     }
     return id;
+  }
+
+  private static boolean reserve(AtomicInteger counter, int amount, int limit) {
+    for (;;) {
+      int current = counter.get();
+      if (amount > limit - current) return false;
+      if (counter.compareAndSet(current, current + amount)) return true;
+    }
   }
 
   private static boolean isLoopbackHost(String host) {
@@ -1105,6 +1198,8 @@ public final class Server implements AutoCloseable {
     final Map<String, Binding> bindings = new ConcurrentHashMap<>();
     final Map<Integer, Stream> streams = new ConcurrentHashMap<>();
     final Map<Integer, UdpStream> udpStreams = new ConcurrentHashMap<>();
+    final AtomicInteger activeUdpStreams = new AtomicInteger();
+    final AtomicInteger udpPendingBytes = new AtomicInteger();
     final ChannelGroup channels = new DefaultChannelGroup(ImmediateEventExecutor.INSTANCE);
     final AtomicInteger nextStream = new AtomicInteger(1);
     final AtomicInteger nextMux = new AtomicInteger();
@@ -1194,6 +1289,7 @@ public final class Server implements AutoCloseable {
     final AtomicBoolean closed = new AtomicBoolean();
     volatile Channel mux;
     final List<byte[]> pending = Collections.synchronizedList(new ArrayList<>());
+    int pendingBytes;
     volatile boolean ready;
     volatile ScheduledFuture<?> timer;
     volatile long lastSeen;
@@ -1327,21 +1423,30 @@ public final class Server implements AutoCloseable {
             form.getOrDefault("balanceKey", ""),
             Settings.parseBandwidthSpec(form.getOrDefault("bandwidth", ""), "bandwidth"),
             health);
+    Map<String, Map<String, DynamicStore.Spec>> updated = new LinkedHashMap<>(dynamicMappings);
     Map<String, DynamicStore.Spec> values =
-        dynamicMappings.computeIfAbsent(clientId, ignored -> new LinkedHashMap<>());
-    if (values.put(name, spec) != null) {
-      Session session = sessions.get(clientId);
-      if (session != null) Wire.send(session.channel, "CONFIG_REMOVE " + name);
-    }
-    DynamicStore.save(dynamicStoreFile, dynamicMappings);
+        new LinkedHashMap<>(updated.getOrDefault(clientId, Collections.emptyMap()));
+    boolean replaced = values.put(name, spec) != null;
+    updated.put(clientId, values);
+    DynamicStore.save(dynamicStoreFile, updated);
+    dynamicMappings = updated;
     Session session = sessions.get(clientId);
-    if (session != null) Wire.send(session.channel, "CONFIG_ADD " + spec.encode());
+    if (session != null) {
+      if (replaced) Wire.send(session.channel, "CONFIG_REMOVE " + name);
+      Wire.send(session.channel, "CONFIG_ADD " + spec.encode());
+    }
   }
 
   synchronized boolean removeDynamicBinding(String clientId, String name) throws IOException {
-    Map<String, DynamicStore.Spec> values = dynamicMappings.get(clientId);
-    if (values == null || values.remove(name) == null) return false;
-    DynamicStore.save(dynamicStoreFile, dynamicMappings);
+    Map<String, DynamicStore.Spec> existing = dynamicMappings.get(clientId);
+    if (existing == null || !existing.containsKey(name)) return false;
+    Map<String, Map<String, DynamicStore.Spec>> updated = new LinkedHashMap<>(dynamicMappings);
+    Map<String, DynamicStore.Spec> values = new LinkedHashMap<>(existing);
+    values.remove(name);
+    if (values.isEmpty()) updated.remove(clientId);
+    else updated.put(clientId, values);
+    DynamicStore.save(dynamicStoreFile, updated);
+    dynamicMappings = updated;
     Session session = sessions.get(clientId);
     if (session != null) Wire.send(session.channel, "CONFIG_REMOVE " + name);
     Binding binding = session == null ? null : session.bindings.get(name);
@@ -1378,10 +1483,15 @@ public final class Server implements AutoCloseable {
 
   @Override
   public void close() {
-    if (management != null) management.stop(0);
+    if (management != null) {
+      management.stop(0);
+      if (management.getExecutor() instanceof java.util.concurrent.ExecutorService)
+        ((java.util.concurrent.ExecutorService) management.getExecutor()).shutdownNow();
+    }
     if (controlListener != null) controlListener.close();
     if (workListener != null) workListener.close();
     if (httpListener != null) httpListener.close();
+    if (httpsListener != null) httpsListener.close();
     for (Session session : sessions.values()) session.channel.close();
     acceptors.shutdownGracefully();
     workers.shutdownGracefully();

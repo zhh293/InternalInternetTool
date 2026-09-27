@@ -6,6 +6,7 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
@@ -133,8 +134,15 @@ final class DynamicStore {
     for (Map.Entry<String, Map<String, Spec>> client : values.entrySet())
       for (Map.Entry<String, Spec> entry : client.getValue().entrySet())
         properties.setProperty(client.getKey() + "." + entry.getKey(), entry.getValue().encode());
-    try (OutputStream output = Files.newOutputStream(path)) {
-      properties.store(output, "tunnel dynamic mappings");
+    Path temporary = Files.createTempFile(parent, path.getFileName().toString(), ".tmp");
+    try {
+      try (OutputStream output = Files.newOutputStream(temporary)) {
+        properties.store(output, "tunnel dynamic mappings");
+      }
+      Files.move(
+          temporary, path, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+    } finally {
+      Files.deleteIfExists(temporary);
     }
   }
 

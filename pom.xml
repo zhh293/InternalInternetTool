@@ -9,6 +9,7 @@
     <maven.compiler.release>11</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <netty.version>4.2.18.Final</netty.version>
+    <skipTests>false</skipTests>
   </properties>
   <dependencyManagement>
     <dependencies>
@@ -29,6 +30,41 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId><artifactId>maven-compiler-plugin</artifactId>
         <version>3.13.0</version>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId><artifactId>exec-maven-plugin</artifactId>
+        <version>3.5.1</version>
+        <executions>
+          <execution>
+            <id>tcp-smoke</id><phase>test</phase><goals><goal>java</goal></goals>
+            <configuration>
+              <mainClass>dev.tunnel.Smoke</mainClass>
+              <classpathScope>test</classpathScope>
+              <skip>${skipTests}</skip>
+            </configuration>
+          </execution>
+          <execution>
+            <id>feature-smoke</id><phase>test</phase><goals><goal>java</goal></goals>
+            <configuration>
+              <mainClass>dev.tunnel.FeatureSmoke</mainClass>
+              <classpathScope>test</classpathScope>
+              <skip>${skipTests}</skip>
+            </configuration>
+          </execution>
+          <execution>
+            <id>mux-keepalive-smoke</id><phase>test</phase><goals><goal>java</goal></goals>
+            <configuration>
+              <mainClass>dev.tunnel.MuxKeepaliveSmoke</mainClass>
+              <classpathScope>test</classpathScope>
+              <skip>${skipTests}</skip>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId><artifactId>maven-jar-plugin</artifactId>
+        <version>3.4.1</version>
+        <configuration><forceCreation>true</forceCreation></configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId><artifactId>maven-shade-plugin</artifactId>

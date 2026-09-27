@@ -1,3 +1,5 @@
 target/
 *.properties
 !*.properties.example
+ladder.pem
+zhh1.pem

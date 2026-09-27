@@ -21,7 +21,9 @@ import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.handler.timeout.IdleStateHandler;
+import java.io.InputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
@@ -37,9 +39,13 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /** Inner-network agent. One TLS mux work channel carries all TCP and UDP streams. */
 public final class Client implements AutoCloseable {
+  private static final int MAX_UDP_STREAMS = 512;
+  private static final int MAX_UDP_PENDING_PER_STREAM = 256 * 1024;
+  private static final int MAX_UDP_PENDING_TOTAL = 8 * 1024 * 1024;
   private final Settings settings;
   private final String token;
   private final String clientId;
@@ -50,6 +56,8 @@ public final class Client implements AutoCloseable {
   private final EventLoopGroup group = new io.netty.channel.nio.NioEventLoopGroup();
   private final Map<Integer, LocalStream> streams = new ConcurrentHashMap<>();
   private final Map<Integer, UdpLocalStream> udpStreams = new ConcurrentHashMap<>();
+  private final AtomicInteger activeUdpStreams = new AtomicInteger();
+  private final AtomicInteger udpPendingBytes = new AtomicInteger();
   private final Map<Integer, String> waitingOpens = new ConcurrentHashMap<>();
   private final AtomicBoolean reconnectScheduled = new AtomicBoolean();
   private final AtomicBoolean muxRetryScheduled = new AtomicBoolean();
@@ -115,7 +123,27 @@ public final class Client implements AutoCloseable {
     try (Socket socket = new Socket()) {
       socket.connect(
           new InetSocketAddress(rule.localHost, rule.localPort), health.timeoutSeconds * 1000);
-      return true;
+      if (!"http".equals(health.type)) return true;
+      socket.setSoTimeout(health.timeoutSeconds * 1000);
+      OutputStream output = socket.getOutputStream();
+      String host = rule.hostRewrite.isEmpty() ? rule.localHost : rule.hostRewrite;
+      if (host.indexOf(':') != host.lastIndexOf(':') && !host.startsWith("["))
+        host = "[" + host + "]";
+      output.write(
+          ("GET / HTTP/1.1\r\nHost: " + host + "\r\nConnection: close\r\n\r\n")
+              .getBytes(StandardCharsets.US_ASCII));
+      output.flush();
+      InputStream input = socket.getInputStream();
+      byte[] status = new byte[128];
+      int length = 0;
+      int next;
+      while (length < status.length && (next = input.read()) >= 0) {
+        if (next == '\n') break;
+        status[length++] = (byte) next;
+      }
+      if (length == status.length) return false;
+      String line = new String(status, 0, length, StandardCharsets.US_ASCII).trim();
+      return line.matches("HTTP/1\\.[01] [23][0-9][0-9](?: .*)?");
     } catch (IOException ignored) {
       return false;
     }
@@ -240,6 +268,7 @@ public final class Client implements AutoCloseable {
     UdpLocalStream udp = udpStreams.get(id);
     Channel channel = tcp != null ? tcp.mux : udp == null ? null : udp.mux;
     if (channel == null || !channel.isActive()) return;
+    if (udp != null && !channel.isWritable()) return;
     if (!channel.isWritable() && tcp != null) {
       synchronized (tcp.pending) {
         if (tcp.pendingBytes + bytes.length > maxPendingBytes) {
@@ -250,6 +279,10 @@ public final class Client implements AutoCloseable {
         tcp.pendingBytes += bytes.length;
         tcp.channel.config().setAutoRead(false);
       }
+      return;
+    }
+    if (bytes.length <= Mux.MAX_PAYLOAD) {
+      channel.writeAndFlush(Mux.encode(channel.alloc(), id, Mux.DATA, bytes));
       return;
     }
     for (int offset = 0; offset < bytes.length; offset += Mux.MAX_PAYLOAD) {
@@ -302,8 +335,15 @@ public final class Client implements AutoCloseable {
       return;
     }
     if (udpStreams.containsKey(id)) return;
+    if (!reserve(activeUdpStreams, 1, MAX_UDP_STREAMS)) {
+      sendFail(id);
+      return;
+    }
     UdpLocalStream stream = new UdpLocalStream(id, rule);
-    udpStreams.put(id, stream);
+    if (udpStreams.putIfAbsent(id, stream) != null) {
+      activeUdpStreams.decrementAndGet();
+      return;
+    }
     new Bootstrap()
         .group(group)
         .channel(NioDatagramChannel.class)
@@ -319,8 +359,12 @@ public final class Client implements AutoCloseable {
         .addListener(
             (ChannelFuture result) -> {
               if (!result.isSuccess()) {
-                udpStreams.remove(id, stream);
+                if (udpStreams.remove(id, stream)) activeUdpStreams.decrementAndGet();
                 sendFail(id);
+                return;
+              }
+              if (udpStreams.get(id) != stream) {
+                result.channel().close();
                 return;
               }
               stream.channel = result.channel();
@@ -331,18 +375,31 @@ public final class Client implements AutoCloseable {
               synchronized (stream.pending) {
                 for (byte[] packet : stream.pending) sendUdp(stream, packet);
                 stream.pending.clear();
+                udpPendingBytes.addAndGet(-stream.pendingBytes);
+                stream.pendingBytes = 0;
               }
               result.channel().config().setAutoRead(true);
             });
   }
 
   private void sendUdp(UdpLocalStream stream, byte[] data) {
+    if (udpStreams.get(stream.id) != stream) return;
     if (stream.channel != null && stream.channel.isActive()) {
+      if (!stream.channel.isWritable()) return;
       stream.channel.writeAndFlush(
           new DatagramPacket(
               Unpooled.wrappedBuffer(data),
               new InetSocketAddress(stream.rule.localHost, stream.rule.localPort)));
-    } else stream.pending.add(data);
+    } else {
+      synchronized (stream.pending) {
+        if (udpStreams.get(stream.id) != stream) return;
+        if (stream.pendingBytes + data.length <= MAX_UDP_PENDING_PER_STREAM
+            && reserve(udpPendingBytes, data.length, MAX_UDP_PENDING_TOTAL)) {
+          stream.pending.add(data);
+          stream.pendingBytes += data.length;
+        }
+      }
+    }
   }
 
   private void sendFail(int id) {
@@ -443,8 +500,7 @@ public final class Client implements AutoCloseable {
       if (control == ctx.channel()) control = null;
       for (Channel mux : new ArrayList<>(muxes)) mux.close();
       for (LocalStream stream : streams.values()) stream.channel.close();
-      for (UdpLocalStream stream : udpStreams.values())
-        if (stream.channel != null) stream.channel.close();
+      for (UdpLocalStream stream : new ArrayList<>(udpStreams.values())) closeUdp(stream.id, false);
       scheduleReconnect();
       ctx.fireChannelInactive();
     }
@@ -582,8 +638,8 @@ public final class Client implements AutoCloseable {
       muxes.remove(ctx.channel());
       for (LocalStream stream : new ArrayList<>(streams.values()))
         if (stream.mux == ctx.channel()) stream.channel.close();
-      for (UdpLocalStream stream : udpStreams.values())
-        if (stream.mux == ctx.channel() && stream.channel != null) stream.channel.close();
+      for (UdpLocalStream stream : new ArrayList<>(udpStreams.values()))
+        if (stream.mux == ctx.channel()) closeUdp(stream.id, false);
       if (!stopped && control != null && control.isActive()) scheduleMuxRetry();
     }
 
@@ -663,7 +719,7 @@ public final class Client implements AutoCloseable {
           int length = Math.min(Mux.MAX_PAYLOAD, bytes.length - offset);
           byte[] part = new byte[length];
           System.arraycopy(bytes, offset, part, 0, length);
-          stream.mux.writeAndFlush(new Mux.Frame(stream.id, Mux.DATA, part));
+          stream.mux.writeAndFlush(Mux.encode(stream.mux.alloc(), stream.id, Mux.DATA, part));
         }
       }
     }
@@ -680,9 +736,23 @@ public final class Client implements AutoCloseable {
   private void closeUdp(int id, boolean notify) {
     UdpLocalStream stream = udpStreams.remove(id);
     if (stream == null) return;
+    activeUdpStreams.decrementAndGet();
+    synchronized (stream.pending) {
+      udpPendingBytes.addAndGet(-stream.pendingBytes);
+      stream.pending.clear();
+      stream.pendingBytes = 0;
+    }
     if (notify && stream.mux != null && stream.mux.isActive())
       stream.mux.writeAndFlush(new Mux.Frame(id, Mux.CLOSE, new byte[0]));
     if (stream.channel != null) stream.channel.close();
+  }
+
+  private static boolean reserve(AtomicInteger counter, int amount, int limit) {
+    for (;;) {
+      int current = counter.get();
+      if (amount > limit - current) return false;
+      if (counter.compareAndSet(current, current + amount)) return true;
+    }
   }
 
   private static final class LocalStream {
@@ -704,6 +774,7 @@ public final class Client implements AutoCloseable {
     final Settings.Rule rule;
     final java.util.List<byte[]> pending =
         java.util.Collections.synchronizedList(new java.util.ArrayList<>());
+    int pendingBytes;
     volatile Channel channel;
     volatile Channel mux;
 
@@ -719,8 +790,7 @@ public final class Client implements AutoCloseable {
     if (control != null) control.close();
     for (Channel mux : new ArrayList<>(muxes)) mux.close();
     for (LocalStream stream : streams.values()) stream.channel.close();
-    for (UdpLocalStream stream : udpStreams.values())
-      if (stream.channel != null) stream.channel.close();
+    for (UdpLocalStream stream : new ArrayList<>(udpStreams.values())) closeUdp(stream.id, false);
     group.shutdownGracefully();
     healthExecutor.shutdownNow();
   }

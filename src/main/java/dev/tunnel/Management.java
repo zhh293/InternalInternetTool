@@ -10,20 +10,32 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.Executors;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /** Tiny dependency-free management API and dashboard for the server process. */
 final class Management {
+  private static final int MAX_FORM_BYTES = 64 * 1024;
+
+  static final class PayloadTooLargeException extends IOException {}
+
   static HttpServer start(Server server, String host, int port, String token) throws IOException {
     if (port <= 0) return null;
     HttpServer http = HttpServer.create(new InetSocketAddress(host, port), 32);
     http.setExecutor(
-        Executors.newCachedThreadPool(
+        new ThreadPoolExecutor(
+            2,
+            8,
+            60,
+            TimeUnit.SECONDS,
+            new ArrayBlockingQueue<>(64),
             r -> {
               Thread thread = new Thread(r, "tunnel-management");
               thread.setDaemon(true);
               return thread;
-            }));
+            },
+            new ThreadPoolExecutor.AbortPolicy()));
     http.createContext(
         "/api/status",
         exchange -> {
@@ -84,6 +96,8 @@ final class Management {
             }
           } catch (IllegalArgumentException error) {
             send(exchange, 400, error.getMessage(), "text/plain");
+          } catch (PayloadTooLargeException error) {
+            send(exchange, 413, "Request body too large", "text/plain");
           } catch (IOException error) {
             send(exchange, 500, "Store unavailable", "text/plain");
           }
@@ -145,7 +159,9 @@ final class Management {
   }
 
   private static Map<String, String> readForm(HttpExchange exchange) throws IOException {
-    String text = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+    byte[] body = exchange.getRequestBody().readNBytes(MAX_FORM_BYTES + 1);
+    if (body.length > MAX_FORM_BYTES) throw new PayloadTooLargeException();
+    String text = new String(body, StandardCharsets.UTF_8);
     Map<String, String> result = new HashMap<>();
     for (String pair : text.split("&")) {
       if (pair.isEmpty()) continue;
