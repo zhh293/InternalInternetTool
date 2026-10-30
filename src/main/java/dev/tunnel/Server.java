@@ -42,11 +42,14 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.Deque;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -54,9 +57,18 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /** Public endpoint and control-plane server. A client owns one TLS mux channel. */
 public final class Server implements AutoCloseable {
+  private static final int TEST_UDP_PERF_MAGIC = 0x54554E4C;
   private static final int MAX_UDP_STREAMS_PER_CLIENT = 512;
   private static final int MAX_UDP_PENDING_PER_STREAM = 256 * 1024;
   private static final int MAX_UDP_PENDING_PER_CLIENT = 8 * 1024 * 1024;
+  private static final int MAX_UDP_OUTBOUND_PER_STREAM = 512 * 1024;
+  private static final int MAX_UDP_OUTBOUND_DATAGRAMS = 2048;
+  private static final int MAX_UDP_EGRESS_QUEUED_DATAGRAMS = 65536;
+  private static final int MAX_UDP_EGRESS_BATCHES_PER_TURN = 16;
+  private static final long MAX_UDP_EGRESS_QUEUE_AGE_NANOS =
+      TimeUnit.MILLISECONDS.toNanos(
+          Math.max(1L, Long.getLong("tunnel.test.udpQueueMaxAgeMillis", 100L)));
+  private static final long UDP_IDLE_TIMEOUT_NANOS = TimeUnit.SECONDS.toNanos(120);
   private final Settings settings;
   private final byte[] password;
   private final Map<String, byte[]> clientTokens;
@@ -65,13 +77,24 @@ public final class Server implements AutoCloseable {
   private final SslContext ssl;
   private final EventLoopGroup acceptors = new NioEventLoopGroup(1);
   private final EventLoopGroup workers = new NioEventLoopGroup();
+  private final EventLoopGroup udpWorkers;
   private final Map<String, Session> sessions = new ConcurrentHashMap<>();
   private final Map<Integer, PortGroup> ports = new ConcurrentHashMap<>();
   private final Map<String, List<Binding>> httpRoutes = new ConcurrentHashMap<>();
   private final String dynamicStoreFile;
   private volatile Map<String, Map<String, DynamicStore.Spec>> dynamicMappings;
   private final int muxPoolSize;
+  private final int udpMuxPoolSize;
   private final int maxPendingBytes;
+  private final int flowWindowBytes;
+  private final int maxFlowWindowBytes;
+  private final int udpSocketBufferBytes;
+  private final int udpMuxWriteBufferHighWaterMarkBytes;
+  private final boolean udpMuxStriping;
+  private final boolean collectUdpPerfStats =
+      Boolean.parseBoolean(System.getProperty("tunnel.test.collectUdpPerfStats", "false"));
+  private final boolean consolidateFlushOutsideRead;
+  private final boolean tcpNoDelay;
   private final AtomicInteger httpRoundRobin = new AtomicInteger();
   private Channel controlListener;
   private Channel workListener;
@@ -81,6 +104,13 @@ public final class Server implements AutoCloseable {
 
   public Server(String configPath) throws Exception {
     this.settings = Settings.load(configPath);
+    int defaultUdpIoThreads =
+        Math.max(1, Math.min(8, Runtime.getRuntime().availableProcessors() / 2));
+    this.udpWorkers =
+        new NioEventLoopGroup(
+            settings.optionalPositive("udpIoThreads", defaultUdpIoThreads, 1, 32));
+    this.consolidateFlushOutsideRead = settings.consolidateFlushOutsideRead();
+    this.tcpNoDelay = settings.optionalBoolean("tcpNoDelay", true);
     String credentialsFile = settings.optional("clientsFile", "");
     if (credentialsFile.isEmpty()) {
       this.password = settings.secret("tokenFile").getBytes(StandardCharsets.UTF_8);
@@ -109,8 +139,28 @@ public final class Server implements AutoCloseable {
     this.dynamicStoreFile = settings.optional("storeFile", "");
     this.dynamicMappings = DynamicStore.load(dynamicStoreFile);
     this.muxPoolSize = settings.optionalPositive("muxPoolSize", 1, 1, 32);
+    this.udpMuxPoolSize = settings.optionalPositive("udpMuxPoolSize", 1, 0, 32);
+    this.udpMuxStriping =
+        settings.optionalBoolean("udpMuxStriping", false) && udpMuxPoolSize > 1;
     this.maxPendingBytes =
         settings.optionalPositive("maxPendingBytes", 8 * 1024 * 1024, 64 * 1024, 256 * 1024 * 1024);
+    this.flowWindowBytes =
+        settings.optionalPositive(
+            "flowWindowBytes",
+            Mux.DEFAULT_FLOW_WINDOW_BYTES,
+            Mux.MIN_FLOW_WINDOW_BYTES,
+            Mux.MAX_FLOW_WINDOW_BYTES);
+    this.maxFlowWindowBytes =
+        settings.optionalPositive(
+            "maxFlowWindowBytes",
+            512 * 1024 * 1024,
+            Mux.MIN_FLOW_WINDOW_BYTES,
+            1024 * 1024 * 1024);
+    this.udpSocketBufferBytes =
+        settings.optionalPositive("udpSocketBufferBytes", 1024 * 1024, 64 * 1024, 16 * 1024 * 1024);
+    this.udpMuxWriteBufferHighWaterMarkBytes =
+        settings.optionalPositive(
+            "udpMuxWriteBufferHighWaterMarkBytes", 8 * 1024 * 1024, 64 * 1024, 16 * 1024 * 1024);
   }
 
   public void start() throws Exception {
@@ -118,6 +168,7 @@ public final class Server implements AutoCloseable {
         new ServerBootstrap()
             .group(acceptors, workers)
             .channel(NioServerSocketChannel.class)
+            .childOption(ChannelOption.TCP_NODELAY, tcpNoDelay)
             .childOption(
                 ChannelOption.WRITE_BUFFER_WATER_MARK,
                 new io.netty.channel.WriteBufferWaterMark(2 * 1024 * 1024, 8 * 1024 * 1024))
@@ -139,6 +190,11 @@ public final class Server implements AutoCloseable {
           new ServerBootstrap()
               .group(acceptors, workers)
               .channel(NioServerSocketChannel.class)
+              .childOption(ChannelOption.TCP_NODELAY, tcpNoDelay)
+              .childOption(
+                  ChannelOption.WRITE_BUFFER_WATER_MARK,
+                  new io.netty.channel.WriteBufferWaterMark(
+                      2 * 1024 * 1024, 8 * 1024 * 1024))
               .childHandler(
                   new ChannelInitializer<SocketChannel>() {
                     @Override
@@ -158,10 +214,12 @@ public final class Server implements AutoCloseable {
             new ServerBootstrap()
                 .group(acceptors, workers)
                 .channel(NioServerSocketChannel.class)
+                .childOption(ChannelOption.TCP_NODELAY, tcpNoDelay)
                 .childHandler(
                     new ChannelInitializer<SocketChannel>() {
                       @Override
                       protected void initChannel(SocketChannel channel) {
+                        channel.pipeline().addLast("flush", Mux.flushConsolidator(consolidateFlushOutsideRead));
                         channel.pipeline().addLast("http", new HttpPublicHandler());
                       }
                     })
@@ -178,11 +236,13 @@ public final class Server implements AutoCloseable {
             new ServerBootstrap()
                 .group(acceptors, workers)
                 .channel(NioServerSocketChannel.class)
+                .childOption(ChannelOption.TCP_NODELAY, tcpNoDelay)
                 .childHandler(
                     new ChannelInitializer<SocketChannel>() {
                       @Override
                       protected void initChannel(SocketChannel channel) {
                         channel.pipeline().addLast("ssl", ssl.newHandler(channel.alloc()));
+                        channel.pipeline().addLast("flush", Mux.flushConsolidator(consolidateFlushOutsideRead));
                         channel.pipeline().addLast("https", new HttpPublicHandler(true));
                       }
                     })
@@ -219,6 +279,7 @@ public final class Server implements AutoCloseable {
     return new ServerBootstrap()
         .group(acceptors, workers)
         .channel(NioServerSocketChannel.class)
+        .childOption(ChannelOption.TCP_NODELAY, tcpNoDelay)
         .childOption(ChannelOption.AUTO_READ, true)
         .childHandler(
             new ChannelInitializer<SocketChannel>() {
@@ -238,6 +299,7 @@ public final class Server implements AutoCloseable {
                               binding.bandwidthBytesPerSecond,
                               binding.bandwidthBytesPerSecond,
                               1000));
+                channel.pipeline().addLast("flush", Mux.flushConsolidator(consolidateFlushOutsideRead));
                 channel.pipeline().addLast(new PublicHandler(group, binding));
               }
             });
@@ -285,8 +347,14 @@ public final class Server implements AutoCloseable {
     }
     if (udp) {
       new Bootstrap()
-          .group(workers)
+          .group(udpWorkers)
           .channel(NioDatagramChannel.class)
+          .option(ChannelOption.SO_RCVBUF, udpSocketBufferBytes)
+          .option(ChannelOption.SO_SNDBUF, udpSocketBufferBytes)
+          .option(
+              ChannelOption.WRITE_BUFFER_WATER_MARK,
+              new io.netty.channel.WriteBufferWaterMark(256 * 1024, 1024 * 1024))
+          .option(ChannelOption.RCVBUF_ALLOCATOR, new io.netty.channel.FixedRecvByteBufAllocator(65536))
           .handler(
               new ChannelInitializer<DatagramChannel>() {
                 @Override
@@ -471,11 +539,12 @@ public final class Server implements AutoCloseable {
     for (UdpStream stream : new ArrayList<>(binding.udpStreams.values())) closeUdpStream(stream);
   }
 
-  private void startStream(Binding binding, Channel visitor, byte[] initial) {
+  private Stream startStream(Binding binding, Channel visitor, ByteBuf initial) {
     Session owner = binding.owner;
     if (!owner.channel.isActive() || owner.streams.size() >= 2000) {
+      ReferenceCountUtil.release(initial);
       visitor.close();
-      return;
+      return null;
     }
     int id = nextId(owner);
     Stream stream = new Stream(id, owner, binding, visitor);
@@ -489,60 +558,75 @@ public final class Server implements AutoCloseable {
     Wire.send(owner.channel, "OPEN " + id + " " + binding.name);
     stream.timer =
         visitor.eventLoop().schedule(() -> closeStream(stream, true), 10, TimeUnit.SECONDS);
+    return stream;
   }
 
+  // Consumes message; retained views are owned by the queue or outbound pipeline.
   private void forwardPublic(Stream stream, ByteBuf message) {
     try {
-      if (!stream.ready || stream.closed.get() || stream.mux == null || !stream.mux.isActive())
-        return;
-      byte[] bytes = new byte[message.readableBytes()];
-      message.readBytes(bytes);
-      metrics.bytesFromPublic.addAndGet(bytes.length);
-      if (!stream.mux.isWritable()) {
-        synchronized (stream.pending) {
-          if (stream.pendingBytes + bytes.length > maxPendingBytes) {
-            closeStream(stream, true);
-            return;
-          }
-          stream.pending.addLast(bytes);
-          stream.pendingBytes += bytes.length;
+      synchronized (stream.pending) {
+        if (stream.closed.get() || (stream.ready && (stream.mux == null || !stream.mux.isActive())))
+          return;
+        int length = message.readableBytes();
+        metrics.bytesFromPublic.add(length);
+        int direct =
+            stream.ready && stream.mux.isWritable() && stream.pending.isEmpty()
+                ? Math.min(length, stream.sendCredit)
+                : 0;
+        int queued = length - direct;
+        if (stream.pendingBytes + queued > maxPendingBytes) {
+          closeStream(stream, true);
+          return;
         }
-        stream.visitor.config().setAutoRead(false);
-        return;
+        if (direct > 0) {
+          Mux.sendData(stream.mux, stream.id, message, direct);
+          stream.sendCredit -= direct;
+        }
+        if (queued > 0) {
+          stream.pending.addLast(message.retainedSlice(message.readerIndex() + direct, queued));
+          stream.pendingBytes += queued;
+          stream.visitor.config().setAutoRead(false);
+        }
+        if (!stream.pending.isEmpty() && stream.ready && stream.mux.isWritable()) {
+          flushPending(stream);
+        }
+        stream.visitor.config().setAutoRead(
+            stream.pending.isEmpty() && stream.sendCredit > 0 && stream.mux.isWritable());
       }
-      sendData(stream.mux, stream.id, bytes);
     } finally {
       ReferenceCountUtil.release(message);
     }
   }
 
-  private void sendData(Channel mux, int id, byte[] bytes) {
-    if (bytes.length <= Mux.MAX_PAYLOAD) {
-      mux.writeAndFlush(Mux.encode(mux.alloc(), id, Mux.DATA, bytes));
-      return;
-    }
-    for (int offset = 0; offset < bytes.length; offset += Mux.MAX_PAYLOAD) {
-      int length = Math.min(Mux.MAX_PAYLOAD, bytes.length - offset);
-      byte[] part = new byte[length];
-      System.arraycopy(bytes, offset, part, 0, length);
-      mux.writeAndFlush(Mux.encode(mux.alloc(), id, Mux.DATA, part));
-    }
-  }
-
   private void flushPending(Stream stream) {
     synchronized (stream.pending) {
-      while (!stream.pending.isEmpty() && stream.mux != null && stream.mux.isWritable()) {
-        byte[] bytes = stream.pending.removeFirst();
-        stream.pendingBytes -= bytes.length;
-        sendData(stream.mux, stream.id, bytes);
+      while (!stream.pending.isEmpty()
+          && stream.mux != null
+          && stream.mux.isWritable()
+          && stream.sendCredit > 0) {
+        ByteBuf bytes = stream.pending.peekFirst();
+        int sent = Math.min(bytes.readableBytes(), stream.sendCredit);
+        Mux.sendData(stream.mux, stream.id, bytes, sent);
+        bytes.skipBytes(sent);
+        stream.pendingBytes -= sent;
+        stream.sendCredit -= sent;
+        if (!bytes.isReadable()) stream.pending.removeFirst().release();
       }
     }
   }
 
   private void closeStream(Stream stream, boolean notify) {
     if (!stream.closed.compareAndSet(false, true)) return;
+    synchronized (stream.pending) {
+      while (!stream.pending.isEmpty()) stream.pending.removeFirst().release();
+      stream.pendingBytes = 0;
+      ReferenceCountUtil.release(stream.initial);
+      stream.initial = null;
+    }
     stream.owner.streams.remove(stream.id, stream);
     stream.binding.streams.remove(stream.id, stream);
+    if (stream.receiveWindowGrant > 0)
+      stream.owner.receiveWindowReserved.addAndGet(-stream.receiveWindowGrant);
     metrics.streamsClosed.incrementAndGet();
     if (stream.timer != null) stream.timer.cancel(false);
     if (notify && stream.mux != null && stream.mux.isActive())
@@ -555,46 +639,181 @@ public final class Server implements AutoCloseable {
     if (stream == null) {
       UdpStream udp = owner.udpStreams.get(frame.streamId);
       if (udp == null || udp.closed.get()) return;
-      if (udp.mux != mux) return;
+      boolean primaryMux = udp.mux == mux;
+      if (!primaryMux
+          && (!udpMuxStriping || !owner.isUdpMuxChannel(mux))) return;
       if (frame.type == Mux.ACK) {
-        udp.ready = true;
+        if (!primaryMux) return;
         synchronized (udp.pending) {
-          for (byte[] bytes : udp.pending) sendData(mux, udp.id, bytes);
-          udp.pending.clear();
-          udp.binding.owner.udpPendingBytes.addAndGet(-udp.pendingBytes);
-          udp.pendingBytes = 0;
+          if (udp.closed.get()) return;
+          udp.ready = true;
+          flushUdpPending(udp);
         }
       } else if (frame.type == Mux.DATA
           && udp.binding.listener != null
           && udp.binding.listener.isWritable()) {
-        metrics.bytesToPublic.addAndGet(frame.payload.length);
+        metrics.bytesToPublic.add(frame.payload.readableBytes());
         udp.binding.listener.writeAndFlush(
-            new DatagramPacket(Unpooled.wrappedBuffer(frame.payload), udp.visitor));
-      } else if (frame.type == Mux.CLOSE) closeUdpStream(udp);
+            new DatagramPacket(frame.payload.retainedSlice(), udp.visitor));
+      } else if (frame.type == Mux.UDP_BATCH && udp.binding.listener != null) {
+        if (!forwardUdpBatch(udp.binding.listener, udp, frame.payload)) mux.close();
+      } else if (frame.type == Mux.CLOSE && primaryMux) closeUdpStream(udp);
       return;
     }
     if (stream.closed.get()) return;
     if (frame.type == Mux.ACK) {
-      stream.mux = mux;
-      stream.ready = true;
-      if (stream.timer != null) stream.timer.cancel(false);
-      if (stream.initial != null) {
-        sendData(mux, stream.id, stream.initial);
-        stream.initial = null;
+      synchronized (stream.pending) {
+        if (stream.closed.get()) return;
+        stream.mux = mux;
+        stream.windowCredit = new Mux.WindowCredit(mux, stream.id);
+        if (frame.payload.readableBytes() != Integer.BYTES) {
+          mux.close();
+          return;
+        }
+        int clientWindow = frame.payload.readInt();
+        if (clientWindow < Mux.MIN_FLOW_WINDOW_BYTES
+            || clientWindow > Mux.MAX_FLOW_WINDOW_BYTES) {
+          mux.close();
+          return;
+        }
+        stream.sendCredit = clientWindow;
+        stream.sendCreditLimit = clientWindow;
+        int serverGrant =
+            reserveWindow(owner.receiveWindowReserved, flowWindowBytes, maxFlowWindowBytes);
+        if (serverGrant == 0) {
+          closeStream(stream, true);
+          return;
+        }
+        stream.receiveWindowGrant = serverGrant;
+        stream.ready = true;
+        Mux.sendWindow(mux, stream.id, serverGrant);
+        if (stream.timer != null) stream.timer.cancel(false);
+        if (stream.initial != null) {
+          ByteBuf initial = stream.initial;
+          stream.initial = null;
+          try {
+            int direct = mux.isWritable()
+                ? Math.min(initial.readableBytes(), stream.sendCredit)
+                : 0;
+            int queued = initial.readableBytes() - direct;
+            if (stream.pendingBytes + queued > maxPendingBytes) {
+              closeStream(stream, true);
+              return;
+            }
+            if (direct > 0) {
+              Mux.sendData(mux, stream.id, initial, direct);
+              stream.sendCredit -= direct;
+            }
+            if (queued > 0) {
+              stream.pending.addFirst(
+                  initial.retainedSlice(initial.readerIndex() + direct, queued));
+              stream.pendingBytes += queued;
+            }
+          } finally {
+            initial.release();
+          }
+        }
+        flushPending(stream);
+        stream.visitor.config().setAutoRead(
+            stream.pending.isEmpty() && stream.sendCredit > 0 && mux.isWritable());
       }
-      stream.visitor.config().setAutoRead(mux.isWritable());
+    } else if (frame.type == Mux.WINDOW) {
+      int credit = frame.payload.readInt();
+      synchronized (stream.pending) {
+        if (stream.closed.get()) return;
+        if (credit <= 0 || credit > stream.sendCreditLimit - stream.sendCredit) {
+          mux.close();
+          return;
+        }
+        stream.sendCredit += credit;
+        flushPending(stream);
+        stream.visitor.config().setAutoRead(
+            stream.pending.isEmpty() && stream.sendCredit > 0 && mux.isWritable());
+      }
     } else if (frame.type == Mux.DATA) {
       if (stream.binding.kind == Settings.Rule.Kind.UDP) {
         if (stream.binding.listener != null && stream.visitorAddress != null) {
-          metrics.bytesToPublic.addAndGet(frame.payload.length);
+          metrics.bytesToPublic.add(frame.payload.readableBytes());
           stream.binding.listener.writeAndFlush(
-              new DatagramPacket(Unpooled.wrappedBuffer(frame.payload), stream.visitorAddress));
+              new DatagramPacket(frame.payload.retainedSlice(), stream.visitorAddress));
         }
       } else if (stream.visitor.isActive()) {
-        metrics.bytesToPublic.addAndGet(frame.payload.length);
-        stream.visitor.writeAndFlush(Unpooled.wrappedBuffer(frame.payload));
+        int length = frame.payload.readableBytes();
+        metrics.bytesToPublic.add(length);
+        stream.visitor
+            .writeAndFlush(frame.payload.retainedSlice())
+            .addListener(
+                f -> {
+                  if (f.isSuccess() && stream.mux == mux && !stream.closed.get())
+                    stream.windowCredit.add(length);
+                  else if (!f.isSuccess()) closeStream(stream, true);
+                });
       }
     } else if (frame.type == Mux.CLOSE) closeStream(stream, false);
+  }
+
+  private boolean forwardUdpBatch(Channel listener, UdpStream stream, ByteBuf payload) {
+    int cursor = payload.readerIndex();
+    int end = payload.writerIndex();
+    int datagramBytes = 0;
+    int datagrams = 0;
+    while (cursor < end) {
+      if (end - cursor < Short.BYTES) return false;
+      int length = payload.getUnsignedShort(cursor);
+      cursor += Short.BYTES;
+      if (length > end - cursor) return false;
+      if (collectUdpPerfStats
+          && length >= 48
+          && payload.getInt(cursor) == TEST_UDP_PERF_MAGIC
+          && payload.getLong(cursor + 32) > 0) {
+        payload.setLong(cursor + 40, System.nanoTime());
+      }
+      cursor += length;
+      datagramBytes += length;
+      datagrams++;
+    }
+    UdpPublicHandler dispatcher = listener.pipeline().get(UdpPublicHandler.class);
+    if (dispatcher == null) return false;
+    dispatcher.enqueueEgress(stream, payload.retainedSlice(), datagramBytes, datagrams);
+    return true;
+  }
+
+  private void writePublicUdpBatch(Channel listener, UdpStream stream, ByteBuf batch) {
+    // Submission and write-completion callbacks both run on this listener's EventLoop.
+    if (!listener.eventLoop().inEventLoop())
+      throw new IllegalStateException("UDP batch writes must run on the listener EventLoop");
+    while (batch.isReadable()) {
+      int length = batch.readUnsignedShort();
+      ByteBuf datagram = batch.readRetainedSlice(length);
+      if (stream.closed.get() || !listener.isActive()) {
+        datagram.release();
+        stream.binding.owner.udpPendingBytes.addAndGet(-length);
+        continue;
+      }
+      if (stream.outboundPendingCount < MAX_UDP_OUTBOUND_DATAGRAMS
+          && length <= MAX_UDP_OUTBOUND_PER_STREAM - stream.outboundPendingBytes) {
+        stream.outboundPendingCount++;
+        stream.outboundPendingBytes += length;
+        boolean sampleWrite = (stream.outboundWriteSequence++ & 63) == 0;
+        long submittedAtNanos = sampleWrite ? System.nanoTime() : 0;
+        listener.write(new DatagramPacket(datagram, stream.visitor))
+            .addListener(
+                result -> {
+                  metrics.recordUdpEgressWrite(
+                      sampleWrite,
+                      sampleWrite ? System.nanoTime() - submittedAtNanos : 0);
+                  stream.outboundPendingCount--;
+                  stream.outboundPendingBytes -= length;
+                  stream.binding.owner.udpPendingBytes.addAndGet(-length);
+                  if (result.isSuccess()) metrics.bytesToPublic.add(length);
+                  else metrics.udpDropped.increment();
+                });
+      } else {
+        metrics.udpDropped.increment();
+        stream.binding.owner.udpPendingBytes.addAndGet(-length);
+        datagram.release();
+      }
+    }
   }
 
   private final class ControlHandler extends SimpleChannelInboundHandler<ByteBuf> {
@@ -634,6 +853,19 @@ public final class Server implements AutoCloseable {
             if (removed != null) removeBinding(removed);
             break;
           case "FAIL":
+            if (words.length != 2)
+              throw new IllegalArgumentException("Expected FAIL streamId");
+            int failedId;
+            try {
+              failedId = Integer.parseInt(words[1]);
+            } catch (NumberFormatException error) {
+              throw new IllegalArgumentException("Invalid streamId");
+            }
+            if (failedId <= 0) throw new IllegalArgumentException("Invalid streamId");
+            Stream failedStream = owner.streams.get(failedId);
+            if (failedStream != null) closeStream(failedStream, false);
+            UdpStream failedUdp = owner.udpStreams.get(failedId);
+            if (failedUdp != null) closeUdpStream(failedUdp);
             break;
           case "PING":
             Wire.send(ctx.channel(), "PONG");
@@ -674,7 +906,7 @@ public final class Server implements AutoCloseable {
         metrics.authFailures.incrementAndGet();
         throw new IllegalArgumentException("Authentication_failed");
       }
-      Session candidate = new Session(words[2], ctx.channel(), expected);
+      Session candidate = new Session(words[2], ctx.channel(), expected, udpMuxPoolSize > 0);
       if (sessions.putIfAbsent(candidate.id, candidate) != null)
         throw new IllegalArgumentException("Client_already_connected");
       owner = candidate;
@@ -710,29 +942,71 @@ public final class Server implements AutoCloseable {
     }
   }
 
+  // ACK can release a burst of queued datagrams. Preserve their order and batch
+  // them without adding a timer or per-datagram flush.
+  private void flushUdpPending(UdpStream stream) {
+    Channel mux = stream.mux;
+    Mux.DatagramBatch batch = new Mux.DatagramBatch(mux.alloc());
+    try {
+      while (!stream.pending.isEmpty()) {
+        ByteBuf packet = stream.pending.removeFirst();
+        int length = packet.readableBytes();
+        try {
+          if (mux.isActive()) {
+            if (!batch.canAdd(length)) Mux.sendUdpBatch(mux, stream.id, batch.take());
+            batch.add(packet);
+          }
+        } finally {
+          packet.release();
+          stream.pendingBytes -= length;
+          stream.binding.owner.udpPendingBytes.addAndGet(-length);
+        }
+      }
+      if (mux.isActive() && !batch.isEmpty()) Mux.sendUdpBatch(mux, stream.id, batch.take());
+    } finally {
+      batch.release();
+    }
+  }
+
   private final class MuxLoginHandler extends SimpleChannelInboundHandler<ByteBuf> {
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf message) {
       String[] words = Wire.readLine(message).split(" ");
       try {
-        if (words.length != 4 || !"MUX".equals(words[0]))
-          throw new IllegalArgumentException("Expected MUX version clientId token");
+        if (words.length != 5 || !"MUX".equals(words[0]))
+          throw new IllegalArgumentException("Expected MUX version role clientId token");
         if (!String.valueOf(Wire.PROTOCOL_VERSION).equals(words[1]))
           throw new IllegalArgumentException("Protocol_version_mismatch");
-        Session owner = sessions.get(words[2]);
+        boolean udp;
+        if ("UDP".equals(words[2])) udp = true;
+        else if ("TCP".equals(words[2])) udp = false;
+        else throw new IllegalArgumentException("Invalid_mux_role");
+        Session owner = sessions.get(words[3]);
         if (owner == null
-            || !MessageDigest.isEqual(owner.token, words[3].getBytes(StandardCharsets.UTF_8))) {
+            || !MessageDigest.isEqual(owner.token, words[4].getBytes(StandardCharsets.UTF_8))) {
           metrics.authFailures.incrementAndGet();
           throw new IllegalArgumentException("Authentication_failed");
         }
-        if (owner.muxes.size() >= muxPoolSize) throw new IllegalArgumentException("Mux_pool_full");
-        owner.muxes.add(ctx.channel());
-        owner.primaryMux = ctx.channel();
+        if (udp) {
+          int high = udpMuxWriteBufferHighWaterMarkBytes;
+          ctx.channel().config().setWriteBufferWaterMark(
+              new io.netty.channel.WriteBufferWaterMark(Math.min(high / 4, high - 1), high));
+        }
+        synchronized (owner) {
+          Set<Channel> rolePool = udp ? owner.udpMuxes : owner.tcpMuxes;
+          int roleLimit = udp ? udpMuxPoolSize : muxPoolSize;
+          if (roleLimit == 0 || rolePool.size() >= roleLimit)
+            throw new IllegalArgumentException("Mux_pool_full");
+          owner.muxes.add(ctx.channel());
+          rolePool.add(ctx.channel());
+          if (!udp) owner.primaryMux = ctx.channel();
+        }
         metrics.muxConnections.incrementAndGet();
-        Wire.send(ctx.channel(), "MUX_OK " + Wire.PROTOCOL_VERSION);
+        Wire.send(ctx.channel(), "MUX_OK " + Wire.PROTOCOL_VERSION + " " + words[2]);
         ctx.pipeline().remove("timeout");
         ctx.pipeline().remove("lines");
         ctx.pipeline().replace(this, "mux-decoder", new Mux.Decoder());
+        ctx.pipeline().addBefore("mux-decoder", "flush", Mux.flushConsolidator(consolidateFlushOutsideRead));
         ctx.pipeline().addLast("mux-encoder", new Mux.Encoder());
         ctx.pipeline().addLast("mux-keepalive", new Mux.KeepaliveHandler());
         ctx.pipeline().addLast("mux", new MuxServerHandler(owner));
@@ -763,7 +1037,9 @@ public final class Server implements AutoCloseable {
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
       if (owner.muxes.remove(ctx.channel())) {
-        if (owner.primaryMux == ctx.channel()) owner.primaryMux = owner.selectMux();
+        owner.tcpMuxes.remove(ctx.channel());
+        owner.udpMuxes.remove(ctx.channel());
+        if (owner.primaryMux == ctx.channel()) owner.primaryMux = owner.selectMux(false);
         metrics.muxConnections.decrementAndGet();
       }
       for (Stream stream : new ArrayList<>(owner.streams.values()))
@@ -774,11 +1050,24 @@ public final class Server implements AutoCloseable {
 
     @Override
     public void channelWritabilityChanged(ChannelHandlerContext ctx) {
-      boolean writable = ctx.channel().isWritable();
-      for (Stream stream : owner.streams.values()) {
-        if (stream.mux != ctx.channel()) continue;
-        if (writable) flushPending(stream);
-        stream.visitor.config().setAutoRead(writable);
+      if (!ctx.channel().isWritable()) {
+        for (Stream stream : owner.streams.values())
+          if (stream.mux == ctx.channel()) stream.visitor.config().setAutoRead(false);
+      } else {
+        // Do not drain inline from a write-completion callback: previously submitted
+        // cross-event-loop writes may still be queued and must stay ahead of this data.
+        ctx.executor().execute(() -> {
+          for (Stream stream : owner.streams.values()) {
+            if (stream.mux != ctx.channel()) continue;
+            synchronized (stream.pending) {
+              flushPending(stream);
+              stream.visitor.config().setAutoRead(
+                  stream.pending.isEmpty()
+                      && stream.sendCredit > 0
+                      && ctx.channel().isWritable());
+            }
+          }
+        });
       }
       ctx.fireChannelWritabilityChanged();
     }
@@ -801,19 +1090,11 @@ public final class Server implements AutoCloseable {
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
-      startStream(binding, ctx.channel(), null);
-      stream = findStream(ctx.channel());
-    }
-
-    private Stream findStream(Channel channel) {
-      for (Stream candidate : binding.streams.values())
-        if (candidate.visitor == channel) return candidate;
-      return null;
+      stream = startStream(binding, ctx.channel(), null);
     }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object message) {
-      if (stream == null) stream = findStream(ctx.channel());
       if (stream != null) forwardPublic(stream, (ByteBuf) message);
       else ReferenceCountUtil.release(message);
     }
@@ -866,20 +1147,18 @@ public final class Server implements AutoCloseable {
       ByteBuf buffer = (ByteBuf) message;
       try {
         if (rejected) return;
-        byte[] bytes = new byte[buffer.readableBytes()];
-        buffer.readBytes(bytes);
         if (routed) {
-          if (stream != null) forwardPublic(stream, Unpooled.wrappedBuffer(bytes));
+          if (stream != null) forwardPublic(stream, buffer.retainedSlice());
           return;
         }
-        int firstBodyByte = -1;
-        for (int i = 0; i < bytes.length; i++) {
-          head.write(bytes[i]);
+        boolean headersComplete = false;
+        while (buffer.isReadable()) {
+          byte value = buffer.readByte();
+          head.write(value);
           if (head.size() > MAX_HEADER_BYTES) {
             httpError(ctx, 431, "Request Header Fields Too Large");
             return;
           }
-          byte value = bytes[i];
           if (headerTerminatorState == 0) headerTerminatorState = value == '\r' ? 1 : 0;
           else if (headerTerminatorState == 1)
             headerTerminatorState = value == '\n' ? 2 : value == '\r' ? 1 : 0;
@@ -887,17 +1166,12 @@ public final class Server implements AutoCloseable {
             headerTerminatorState = value == '\r' ? 3 : 0;
           else headerTerminatorState = value == '\n' ? 4 : value == '\r' ? 1 : 0;
           if (headerTerminatorState == 4) {
-            firstBodyByte = i + 1;
+            headersComplete = true;
             break;
           }
         }
-        if (firstBodyByte < 0) return;
-        byte[] headers = head.toByteArray();
-        byte[] all = new byte[headers.length + bytes.length - firstBodyByte];
-        System.arraycopy(headers, 0, all, 0, headers.length);
-        System.arraycopy(bytes, firstBodyByte, all, headers.length, bytes.length - firstBodyByte);
-        int end = headers.length - 4;
-        String text = new String(all, 0, end + 4, StandardCharsets.ISO_8859_1);
+        if (!headersComplete) return;
+        String text = head.toString(StandardCharsets.ISO_8859_1);
         String host = null;
         for (String line : text.split("\\r\\n")) {
           int colon = line.indexOf(':');
@@ -950,8 +1224,7 @@ public final class Server implements AutoCloseable {
                   "traffic",
                   new ChannelTrafficShapingHandler(
                       binding.bandwidthBytesPerSecond, binding.bandwidthBytesPerSecond, 1000));
-        startStream(binding, ctx.channel(), prepareRequest(all, binding, ctx));
-        stream = findStream(binding, ctx.channel());
+        stream = startStream(binding, ctx.channel(), prepareRequest(text, binding, ctx, buffer));
       } finally {
         ReferenceCountUtil.release(message);
       }
@@ -982,12 +1255,6 @@ public final class Server implements AutoCloseable {
       ctx.fireUserEventTriggered(event);
     }
 
-    private Stream findStream(Binding binding, Channel channel) {
-      for (Stream candidate : binding.streams.values())
-        if (candidate.visitor == channel) return candidate;
-      return null;
-    }
-
     private void httpError(ChannelHandlerContext ctx, int code, String reason) {
       if (rejected) return;
       rejected = true;
@@ -1015,10 +1282,9 @@ public final class Server implements AutoCloseable {
       return null;
     }
 
-    private byte[] prepareRequest(byte[] request, Binding binding, ChannelHandlerContext ctx) {
-      int headerEnd = indexOf(request, new byte[] {'\r', '\n', '\r', '\n'});
-      String[] lines =
-          new String(request, 0, headerEnd, StandardCharsets.ISO_8859_1).split("\\r\\n");
+    private ByteBuf prepareRequest(String request, Binding binding, ChannelHandlerContext ctx,
+        ByteBuf body) {
+      String[] lines = request.substring(0, request.length() - 4).split("\\r\\n");
       String forwarded =
           "X-Forwarded-For: "
               + ((InetSocketAddress) ctx.channel().remoteAddress()).getAddress().getHostAddress();
@@ -1033,10 +1299,9 @@ public final class Server implements AutoCloseable {
       }
       rebuilt.append(forwarded).append("\r\n\r\n");
       byte[] headers = rebuilt.toString().getBytes(StandardCharsets.ISO_8859_1);
-      byte[] result = new byte[headers.length + request.length - headerEnd - 4];
-      System.arraycopy(headers, 0, result, 0, headers.length);
-      System.arraycopy(request, headerEnd + 4, result, headers.length, request.length - headerEnd - 4);
-      return result;
+      if (!body.isReadable()) return Unpooled.wrappedBuffer(headers);
+      return ctx.alloc().compositeBuffer(2)
+          .addComponents(true, Unpooled.wrappedBuffer(headers), body.retainedSlice());
     }
 
     @Override
@@ -1053,15 +1318,143 @@ public final class Server implements AutoCloseable {
 
   private final class UdpPublicHandler extends SimpleChannelInboundHandler<DatagramPacket> {
     private final PortGroup group;
+    private final Map<UdpStream, Mux.DatagramBatch> batches = new HashMap<>();
+    private final ConcurrentLinkedQueue<UdpEgressWork> egressQueue = new ConcurrentLinkedQueue<>();
+    private final AtomicBoolean egressDrainScheduled = new AtomicBoolean();
+    private final AtomicInteger queuedEgressDatagrams = new AtomicInteger();
+    private final boolean coalesceEgressTasks =
+        Boolean.parseBoolean(System.getProperty("tunnel.test.udpEgressCoalescing", "true"));
+    private volatile ChannelHandlerContext egressContext;
+    private ScheduledFuture<?> expirySweep;
 
     UdpPublicHandler(PortGroup group) {
       this.group = group;
     }
 
     @Override
+    public void handlerAdded(ChannelHandlerContext ctx) {
+      egressContext = ctx;
+    }
+
+    private void enqueueEgress(
+        UdpStream stream, ByteBuf payload, int datagramBytes, int datagrams) {
+      ChannelHandlerContext ctx = egressContext;
+      if (ctx == null
+          || !ctx.channel().isActive()
+          || !reserve(stream.binding.owner.udpPendingBytes, datagramBytes, MAX_UDP_PENDING_PER_CLIENT)) {
+        metrics.udpDropped.add(datagrams);
+        ReferenceCountUtil.release(payload);
+        return;
+      }
+      if (!reserve(queuedEgressDatagrams, datagrams, MAX_UDP_EGRESS_QUEUED_DATAGRAMS)) {
+        stream.binding.owner.udpPendingBytes.addAndGet(-datagramBytes);
+        metrics.udpDropped.add(datagrams);
+        ReferenceCountUtil.release(payload);
+        return;
+      }
+      egressQueue.offer(new UdpEgressWork(stream, payload, datagramBytes, datagrams));
+      if (coalesceEgressTasks) scheduleEgressDrain(ctx);
+      else scheduleSingleEgressDrain(ctx);
+    }
+
+    private void scheduleSingleEgressDrain(ChannelHandlerContext ctx) {
+      try {
+        ctx.executor()
+            .execute(
+                () -> {
+                  metrics.udpEgressDrainTasks.incrementAndGet();
+                  UdpEgressWork work = egressQueue.poll();
+                  if (work != null) {
+                    queuedEgressDatagrams.addAndGet(-work.datagrams);
+                    processEgressWork(ctx, work);
+                    ctx.flush();
+                  }
+                });
+      } catch (java.util.concurrent.RejectedExecutionException closed) {
+        discardEgressQueue(true);
+      }
+    }
+
+    private void scheduleEgressDrain(ChannelHandlerContext ctx) {
+      if (!egressDrainScheduled.compareAndSet(false, true)) return;
+      try {
+        ctx.executor().execute(() -> drainEgress(ctx));
+      } catch (java.util.concurrent.RejectedExecutionException closed) {
+        egressDrainScheduled.set(false);
+        discardEgressQueue(true);
+      }
+    }
+
+    private void drainEgress(ChannelHandlerContext ctx) {
+      metrics.udpEgressDrainTasks.incrementAndGet();
+      int drained = 0;
+      try {
+        UdpEgressWork work;
+        while (drained < MAX_UDP_EGRESS_BATCHES_PER_TURN
+            && (work = egressQueue.poll()) != null) {
+          queuedEgressDatagrams.addAndGet(-work.datagrams);
+          processEgressWork(ctx, work);
+          drained++;
+        }
+        if (drained > 0 && ctx.channel().isActive()) ctx.flush();
+      } finally {
+        egressDrainScheduled.set(false);
+        if (!egressQueue.isEmpty()) scheduleEgressDrain(ctx);
+      }
+    }
+
+    private void processEgressWork(ChannelHandlerContext ctx, UdpEgressWork work) {
+      try {
+        long queueDelayNanos = System.nanoTime() - work.queuedAtNanos;
+        metrics.observeUdpEgressQueueDelay(queueDelayNanos);
+        if (queueDelayNanos > MAX_UDP_EGRESS_QUEUE_AGE_NANOS) {
+          metrics.udpDropped.add(work.datagrams);
+          work.stream.binding.owner.udpPendingBytes.addAndGet(-work.datagramBytes);
+        } else {
+          writePublicUdpBatch(ctx.channel(), work.stream, work.payload);
+        }
+      } finally {
+        work.payload.release();
+      }
+    }
+
+    private void discardEgressQueue(boolean countDrops) {
+      UdpEgressWork work;
+      while ((work = egressQueue.poll()) != null) {
+        queuedEgressDatagrams.addAndGet(-work.datagrams);
+        work.stream.binding.owner.udpPendingBytes.addAndGet(-work.datagramBytes);
+        if (countDrops) metrics.udpDropped.add(work.datagrams);
+        work.payload.release();
+      }
+    }
+
+    @Override
+    public void channelActive(ChannelHandlerContext ctx) {
+      expirySweep =
+          ctx.executor().scheduleAtFixedRate(
+              () -> {
+                long now = System.nanoTime();
+                List<Binding> bindings;
+                synchronized (group.bindings) {
+                  bindings = new ArrayList<>(group.bindings);
+                }
+                for (Binding binding : bindings) {
+                  for (UdpStream stream : binding.udpStreams.values()) {
+                    if (now - stream.lastSeen >= UDP_IDLE_TIMEOUT_NANOS)
+                      closeUdpStream(stream);
+                  }
+                }
+              },
+              5,
+              5,
+              TimeUnit.SECONDS);
+      ctx.fireChannelActive();
+    }
+
+    @Override
     protected void channelRead0(ChannelHandlerContext ctx, DatagramPacket packet) {
       InetSocketAddress address = packet.sender();
-      String key = String.valueOf(address);
+      InetSocketAddress key = address;
       Binding binding = group.udpAffinity.get(key);
       if (binding == null || binding.closed.get() || !binding.healthy) {
         binding = chooseBinding(group);
@@ -1069,7 +1462,7 @@ public final class Server implements AutoCloseable {
       }
       UdpStream stream = binding.udpStreams.get(key);
       if (stream == null || stream.closed.get()) {
-        Channel mux = binding.owner.selectMux();
+        Channel mux = binding.owner.selectMux(true);
         if (mux == null || !reserve(binding.owner.activeUdpStreams, 1, MAX_UDP_STREAMS_PER_CLIENT))
           return;
         stream = new UdpStream(nextId(binding.owner), binding, address);
@@ -1077,33 +1470,123 @@ public final class Server implements AutoCloseable {
         binding.owner.udpStreams.put(stream.id, stream);
         group.udpAffinity.put(key, binding);
         metrics.streamsOpened.incrementAndGet();
-        UdpStream selected = stream;
-        stream.timer =
-            ctx.executor().schedule(() -> closeUdpStream(selected), 120, TimeUnit.SECONDS);
         stream.mux = mux;
         mux.writeAndFlush(
             new Mux.Frame(
                 stream.id, Mux.OPEN_UDP, binding.name.getBytes(StandardCharsets.UTF_8)));
       }
       stream.lastSeen = System.nanoTime();
-      if (stream.timer != null) stream.timer.cancel(false);
-      UdpStream selected = stream;
-      stream.timer = ctx.executor().schedule(() -> closeUdpStream(selected), 120, TimeUnit.SECONDS);
-      byte[] bytes = new byte[packet.content().readableBytes()];
-      packet.content().getBytes(packet.content().readerIndex(), bytes);
-      if (!binding.allowDatagram(bytes.length)) return;
-      metrics.bytesFromPublic.addAndGet(bytes.length);
+      ByteBuf bytes = packet.content();
+      int length = bytes.readableBytes();
+      if (!binding.allowDatagram(length)) return;
+      metrics.bytesFromPublic.add(length);
+      if (stream.closed.get()) return;
       if (stream.ready) {
-        if (stream.mux != null && stream.mux.isActive() && stream.mux.isWritable())
-          sendData(stream.mux, stream.id, bytes);
-      } else {
-        synchronized (stream.pending) {
-          if (!stream.closed.get()
-              && stream.pendingBytes + bytes.length <= MAX_UDP_PENDING_PER_STREAM
-              && reserve(binding.owner.udpPendingBytes, bytes.length, MAX_UDP_PENDING_PER_CLIENT)) {
-            stream.pending.add(bytes);
-            stream.pendingBytes += bytes.length;
+        addReadyDatagram(ctx, stream, bytes);
+        return;
+      }
+      synchronized (stream.pending) {
+        if (stream.closed.get()) return;
+        if (!stream.ready) {
+          if (stream.pending.size() < Mux.MAX_PENDING_DATAGRAMS
+              && stream.pendingBytes + length <= MAX_UDP_PENDING_PER_STREAM
+              && reserve(binding.owner.udpPendingBytes, length, MAX_UDP_PENDING_PER_CLIENT)) {
+            stream.pending.addLast(Mux.retainDatagramForQueue(bytes));
+            stream.pendingBytes += length;
           }
+          return;
+        }
+      }
+      addReadyDatagram(ctx, stream, bytes);
+    }
+
+    private void addReadyDatagram(ChannelHandlerContext ctx, UdpStream stream, ByteBuf packet) {
+      Channel mux = stream.mux;
+      if (!stream.closed.get() && mux != null && mux.isActive() && mux.isWritable())
+        addToBatch(ctx, stream, packet);
+    }
+
+    private void addToBatch(ChannelHandlerContext ctx, UdpStream stream, ByteBuf packet) {
+      int length = packet.readableBytes();
+      Mux.DatagramBatch batch = batches.get(stream);
+      if (batch != null && !batch.canAdd(length)) {
+        flushBatch(stream);
+        batch = null;
+      }
+      if (batch == null) {
+        batch = new Mux.DatagramBatch(ctx.alloc());
+        batches.put(stream, batch);
+      }
+      batch.add(packet);
+    }
+
+    private void flushBatch(UdpStream stream) {
+      Mux.DatagramBatch batch = batches.remove(stream);
+      flushBatch(stream, batch);
+    }
+
+    private void flushBatch(UdpStream stream, Mux.DatagramBatch batch) {
+      if (batch == null) return;
+      ByteBuf payload = batch.take();
+      batch.release();
+      if (payload == null) return;
+      Channel mux = udpMuxStriping ? stream.binding.owner.selectMux(true) : stream.mux;
+      if (!stream.closed.get()
+          && stream.ready
+          && stream.mux != null
+          && stream.mux.isActive()
+          && mux != null
+          && mux.isActive()
+          && mux.isWritable()) {
+        if (collectUdpPerfStats) stampUdpPerfMuxWrite(payload, System.nanoTime());
+        Mux.sendUdpBatch(mux, stream.id, payload);
+      }
+      else payload.release();
+    }
+
+    private void stampUdpPerfMuxWrite(ByteBuf payload, long timestampNanos) {
+      int cursor = payload.readerIndex();
+      int end = payload.writerIndex();
+      while (cursor < end) {
+        int length = payload.getUnsignedShort(cursor);
+        cursor += Short.BYTES;
+        if (length > end - cursor) return;
+        if (length >= 64
+            && payload.getInt(cursor) == TEST_UDP_PERF_MAGIC
+            && payload.getLong(cursor + 8) > 0) payload.setLong(cursor + 56, timestampNanos);
+        cursor += length;
+      }
+    }
+
+    private void flushBatches() {
+      Iterator<Map.Entry<UdpStream, Mux.DatagramBatch>> iterator = batches.entrySet().iterator();
+      while (iterator.hasNext()) {
+        Map.Entry<UdpStream, Mux.DatagramBatch> entry = iterator.next();
+        iterator.remove();
+        flushBatch(entry.getKey(), entry.getValue());
+      }
+    }
+
+    @Override
+    public void channelReadComplete(ChannelHandlerContext ctx) {
+      flushBatches();
+      ctx.fireChannelReadComplete();
+    }
+
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) {
+      if (expirySweep != null) expirySweep.cancel(false);
+      egressDrainScheduled.set(false);
+      discardEgressQueue(false);
+      for (Mux.DatagramBatch batch : batches.values()) batch.release();
+      batches.clear();
+      List<Binding> bindings;
+      synchronized (group.bindings) {
+        bindings = new ArrayList<>(group.bindings);
+      }
+      for (Binding binding : bindings) {
+        for (UdpStream stream : binding.udpStreams.values()) {
+          if (stream.binding.group == group) closeUdpStream(stream);
         }
       }
     }
@@ -1111,18 +1594,17 @@ public final class Server implements AutoCloseable {
 
   private void closeUdpStream(UdpStream stream) {
     if (!stream.closed.compareAndSet(false, true)) return;
-    if (stream.timer != null) stream.timer.cancel(false);
     metrics.streamsClosed.incrementAndGet();
-    stream.binding.udpStreams.remove(String.valueOf(stream.visitor), stream);
+    stream.binding.udpStreams.remove(stream.visitor, stream);
     stream.binding.owner.udpStreams.remove(stream.id, stream);
     stream.binding.owner.activeUdpStreams.decrementAndGet();
     synchronized (stream.pending) {
       stream.binding.owner.udpPendingBytes.addAndGet(-stream.pendingBytes);
-      stream.pending.clear();
+      while (!stream.pending.isEmpty()) stream.pending.removeFirst().release();
       stream.pendingBytes = 0;
     }
     if (stream.binding.group != null)
-      stream.binding.group.udpAffinity.remove(String.valueOf(stream.visitor), stream.binding);
+      stream.binding.group.udpAffinity.remove(stream.visitor, stream.binding);
     if (stream.mux != null && stream.mux.isActive())
       stream.mux.writeAndFlush(new Mux.Frame(stream.id, Mux.CLOSE, new byte[0]));
   }
@@ -1144,20 +1626,20 @@ public final class Server implements AutoCloseable {
     }
   }
 
+  private static int reserveWindow(AtomicInteger counter, int requested, int limit) {
+    for (;;) {
+      int current = counter.get();
+      int grant = Math.min(requested, limit - current);
+      if (grant < Mux.MIN_FLOW_WINDOW_BYTES) return 0;
+      if (counter.compareAndSet(current, current + grant)) return grant;
+    }
+  }
+
   private static boolean isLoopbackHost(String host) {
     return "127.0.0.1".equals(host)
         || "localhost".equalsIgnoreCase(host)
         || "::1".equals(host)
         || "0:0:0:0:0:0:0:1".equals(host);
-  }
-
-  private static int indexOf(byte[] value, byte[] needle) {
-    outer:
-    for (int i = 0; i <= value.length - needle.length; i++) {
-      for (int j = 0; j < needle.length; j++) if (value[i + j] != needle[j]) continue outer;
-      return i;
-    }
-    return -1;
   }
 
   private static byte[] concat(byte[] left, byte[] right) {
@@ -1174,10 +1656,14 @@ public final class Server implements AutoCloseable {
     final Channel visitor;
     final AtomicBoolean closed = new AtomicBoolean();
     volatile Channel mux;
-    final Deque<byte[]> pending = new ArrayDeque<>();
+    final Deque<ByteBuf> pending = new ArrayDeque<>();
     int pendingBytes;
+    int sendCredit;
+    int sendCreditLimit;
+    int receiveWindowGrant;
     volatile boolean ready;
-    volatile byte[] initial;
+    volatile Mux.WindowCredit windowCredit;
+    volatile ByteBuf initial;
     volatile InetSocketAddress visitorAddress;
     volatile ScheduledFuture<?> timer;
 
@@ -1193,28 +1679,42 @@ public final class Server implements AutoCloseable {
     final String id;
     final Channel channel;
     final byte[] token;
+    final boolean dedicatedUdpMux;
     final Set<Channel> muxes = ConcurrentHashMap.newKeySet();
+    final Set<Channel> tcpMuxes = ConcurrentHashMap.newKeySet();
+    final Set<Channel> udpMuxes = ConcurrentHashMap.newKeySet();
     volatile Channel primaryMux;
     final Map<String, Binding> bindings = new ConcurrentHashMap<>();
     final Map<Integer, Stream> streams = new ConcurrentHashMap<>();
     final Map<Integer, UdpStream> udpStreams = new ConcurrentHashMap<>();
     final AtomicInteger activeUdpStreams = new AtomicInteger();
     final AtomicInteger udpPendingBytes = new AtomicInteger();
+    final AtomicInteger receiveWindowReserved = new AtomicInteger();
     final ChannelGroup channels = new DefaultChannelGroup(ImmediateEventExecutor.INSTANCE);
     final AtomicInteger nextStream = new AtomicInteger(1);
     final AtomicInteger nextMux = new AtomicInteger();
 
-    Session(String id, Channel channel, byte[] token) {
+    Session(String id, Channel channel, byte[] token, boolean dedicatedUdpMux) {
       this.id = id;
       this.channel = channel;
       this.token = token;
+      this.dedicatedUdpMux = dedicatedUdpMux;
     }
 
-    Channel selectMux() {
-      List<Channel> active = new ArrayList<>();
-      for (Channel mux : muxes) if (mux.isActive() && mux.isWritable()) active.add(mux);
-      if (active.isEmpty()) return null;
-      return active.get(Math.floorMod(nextMux.getAndIncrement(), active.size()));
+    Channel selectMux(boolean udp) {
+      Set<Channel> pool = udp && dedicatedUdpMux ? udpMuxes : tcpMuxes;
+      int eligible = 0;
+      for (Channel mux : pool) if (mux.isActive() && mux.isWritable()) eligible++;
+      if (eligible == 0) return null;
+      int selected = Math.floorMod(nextMux.getAndIncrement(), eligible);
+      for (Channel mux : pool) {
+        if (mux.isActive() && mux.isWritable() && selected-- == 0) return mux;
+      }
+      return null;
+    }
+
+    boolean isUdpMuxChannel(Channel mux) {
+      return (dedicatedUdpMux ? udpMuxes : tcpMuxes).contains(mux);
     }
   }
 
@@ -1226,7 +1726,7 @@ public final class Server implements AutoCloseable {
     final List<String> hosts = Collections.synchronizedList(new ArrayList<>());
     final List<String> locations = Collections.synchronizedList(new ArrayList<>());
     final Map<Integer, Stream> streams = new ConcurrentHashMap<>();
-    final Map<String, UdpStream> udpStreams = new ConcurrentHashMap<>();
+    final Map<InetSocketAddress, UdpStream> udpStreams = new ConcurrentHashMap<>();
     final AtomicBoolean closed = new AtomicBoolean();
     volatile String hostRewrite = "";
     volatile String basicUser = "";
@@ -1270,7 +1770,7 @@ public final class Server implements AutoCloseable {
     final String balanceGroup;
     final String balanceKey;
     final List<Binding> bindings = Collections.synchronizedList(new ArrayList<>());
-    final Map<String, Binding> udpAffinity = new ConcurrentHashMap<>();
+    final Map<InetSocketAddress, Binding> udpAffinity = new ConcurrentHashMap<>();
     final AtomicInteger next = new AtomicInteger();
     volatile Channel listener;
 
@@ -1288,10 +1788,13 @@ public final class Server implements AutoCloseable {
     final InetSocketAddress visitor;
     final AtomicBoolean closed = new AtomicBoolean();
     volatile Channel mux;
-    final List<byte[]> pending = Collections.synchronizedList(new ArrayList<>());
+    final Deque<ByteBuf> pending = new ArrayDeque<>();
     int pendingBytes;
+    // Confined to binding.listener's EventLoop; write completion runs on that loop too.
+    int outboundPendingCount;
+    int outboundPendingBytes;
+    int outboundWriteSequence;
     volatile boolean ready;
-    volatile ScheduledFuture<?> timer;
     volatile long lastSeen;
 
     UdpStream(int id, Binding binding, InetSocketAddress visitor) {
@@ -1299,6 +1802,22 @@ public final class Server implements AutoCloseable {
       this.binding = binding;
       this.visitor = visitor;
       this.lastSeen = System.nanoTime();
+    }
+  }
+
+  private static final class UdpEgressWork {
+    final UdpStream stream;
+    final ByteBuf payload;
+    final int datagramBytes;
+    final int datagrams;
+    final long queuedAtNanos;
+
+    UdpEgressWork(UdpStream stream, ByteBuf payload, int datagramBytes, int datagrams) {
+      this.stream = stream;
+      this.payload = payload;
+      this.datagramBytes = datagramBytes;
+      this.datagrams = datagrams;
+      this.queuedAtNanos = System.nanoTime();
     }
   }
 
@@ -1317,6 +1836,10 @@ public final class Server implements AutoCloseable {
           .append(session.muxes.stream().anyMatch(Channel::isActive))
           .append(",\"muxes\":")
           .append(session.muxes.size())
+          .append(",\"tcpMuxes\":")
+          .append(session.tcpMuxes.size())
+          .append(",\"udpMuxes\":")
+          .append(session.udpMuxes.size())
           .append(",\"streams\":")
           .append(session.streams.size() + session.udpStreams.size())
           .append(",\"bindings\":[");
@@ -1495,6 +2018,7 @@ public final class Server implements AutoCloseable {
     for (Session session : sessions.values()) session.channel.close();
     acceptors.shutdownGracefully();
     workers.shutdownGracefully();
+    udpWorkers.shutdownGracefully();
   }
 
   public static void main(String[] args) throws Exception {

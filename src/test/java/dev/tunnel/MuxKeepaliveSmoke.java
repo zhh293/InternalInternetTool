@@ -7,6 +7,7 @@ import java.util.concurrent.TimeUnit;
 /** Unit-style checks for connection-level mux PING/PONG and timeout behavior. */
 public final class MuxKeepaliveSmoke {
   public static void main(String[] args) throws Exception {
+    MuxBufferSmoke.main(new String[0]);
     pingPongKeepsBothChannelsAlive();
     missingPongClosesChannel();
     System.out.println("Mux keepalive smoke passed");

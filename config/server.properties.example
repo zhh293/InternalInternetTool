@@ -21,7 +21,28 @@ managementBindHost=127.0.0.1
 # managementTokenFile=/etc/tunnel/management-token
 # Persist mappings created through the management API.
 # storeFile=/var/lib/tunnel/mappings.properties
-# Number of independent mux work connections per client.
+# Number of TCP/HTTP mux work connections per client.
 # muxPoolSize=2
+# Dedicated UDP mux work connections per client; must match the client setting (default: 1).
+# Set to 0 on both ends to carry UDP on the TCP pool.
+# udpMuxPoolSize=1
+# latency (default): flush immediately outside read loops; balanced: batch until an event-loop task.
+# flushMode=latency
+# Disable Nagle's algorithm on TCP connections (default: true).
+# tcpNoDelay=true
 # Backpressure queue per stream.
 # maxPendingBytes=8388608
+# Per-stream TCP/HTTP receive window (64 KiB to 64 MiB; default 256 KiB).
+# Increase for high-bandwidth, high-latency links; this raises per-stream buffering.
+# flowWindowBytes=262144
+# Aggregate outstanding TCP/HTTP windows per client session (default 512 MiB).
+# maxFlowWindowBytes=536870912
+# UDP listener socket send/receive buffer (default 1 MiB).
+# udpSocketBufferBytes=1048576
+# High watermark for queued writes on UDP-only TLS mux channels (default 8 MiB).
+# udpMuxWriteBufferHighWaterMarkBytes=8388608
+# Both ends must enable this and use udpMuxPoolSize > 1.
+# Spreads one UDP stream across mux connections; datagram order may change.
+# udpMuxStriping=false
+# Dedicated Netty UDP I/O threads (default: half the detected CPUs, capped at 8).
+# udpIoThreads=2

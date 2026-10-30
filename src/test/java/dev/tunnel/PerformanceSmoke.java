@@ -3,27 +3,37 @@ package dev.tunnel;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /** Local throughput benchmark over the real TCP/TLS/mux path. */
 public final class PerformanceSmoke {
-  private static final int WARMUP_BYTES = 8 * 1024 * 1024;
-  private static final int MEASURED_BYTES = 64 * 1024 * 1024;
+  // Keep the measurement long enough to smooth scheduler/JIT noise on loopback.
+  private static final int WARMUP_BYTES = 32 * 1024 * 1024;
+  private static final int MEASURED_BYTES = 256 * 1024 * 1024;
+  private static final int MEASURED_RUNS = 3;
   private static final int CHUNK_BYTES = 64 * 1024;
 
   public static void main(String[] args) throws Exception {
     if (args.length != 0) throw new IllegalArgumentException("Usage: PerformanceSmoke");
+    int flowWindowBytes =
+        Integer.getInteger("tunnel.test.flowWindowBytes", Mux.DEFAULT_FLOW_WINDOW_BYTES);
+    boolean tcpNoDelay = Boolean.parseBoolean(System.getProperty("tunnel.test.tcpNoDelay", "true"));
+    String flushMode = System.getProperty("tunnel.test.flushMode", "latency");
     AtomicBoolean running = new AtomicBoolean(true);
     Path temp = Files.createTempDirectory("tunnel-performance-");
     SelfSignedCertificate certificate = new SelfSignedCertificate("localhost");
@@ -45,6 +55,9 @@ public final class PerformanceSmoke {
       serverValues.setProperty("allowedPortStart", String.valueOf(publicPort));
       serverValues.setProperty("allowedPortEnd", String.valueOf(publicPort));
       serverValues.setProperty("maxPendingBytes", String.valueOf(256 * 1024 * 1024));
+      serverValues.setProperty("flowWindowBytes", String.valueOf(flowWindowBytes));
+      serverValues.setProperty("tcpNoDelay", String.valueOf(tcpNoDelay));
+      serverValues.setProperty("flushMode", flushMode);
       serverValues.setProperty("tokenFile", secret.toString());
       serverValues.setProperty("certFile", certificate.certificate().getAbsolutePath());
       serverValues.setProperty("keyFile", certificate.privateKey().getAbsolutePath());
@@ -61,6 +74,9 @@ public final class PerformanceSmoke {
       clientValues.setProperty("tokenFile", secret.toString());
       clientValues.setProperty("caFile", certificate.certificate().getAbsolutePath());
       clientValues.setProperty("maxPendingBytes", String.valueOf(256 * 1024 * 1024));
+      clientValues.setProperty("flowWindowBytes", String.valueOf(flowWindowBytes));
+      clientValues.setProperty("tcpNoDelay", String.valueOf(tcpNoDelay));
+      clientValues.setProperty("flushMode", flushMode);
       clientValues.setProperty("map.web", publicPort + ",127.0.0.1," + echo.getLocalPort());
       try (OutputStream output = Files.newOutputStream(clientConfig)) {
         clientValues.store(output, "performance-test");
@@ -76,13 +92,34 @@ public final class PerformanceSmoke {
         waitUntilMapped(publicPort);
 
         roundTrip(publicPort, WARMUP_BYTES, false);
-        long elapsedNanos = roundTrip(publicPort, MEASURED_BYTES, true);
-        double seconds = elapsedNanos / 1_000_000_000.0;
-        double mibPerSecond = MEASURED_BYTES / 1024.0 / 1024.0 / seconds;
-        double wireMibPerSecond = (2.0 * MEASURED_BYTES) / 1024.0 / 1024.0 / seconds;
-        System.out.printf(
-            "PERFORMANCE_OK: payload=%d MiB elapsed=%.3f s application=%.2f MiB/s round-trip-wire=%.2f MiB/s%n",
-            MEASURED_BYTES / 1024 / 1024, seconds, mibPerSecond, wireMibPerSecond);
+        double[] rates = new double[MEASURED_RUNS];
+        try (CpuSampler cpu = new CpuSampler()) {
+          for (int i = 0; i < rates.length; i++) {
+            long elapsedNanos = roundTrip(publicPort, MEASURED_BYTES, true);
+            rates[i] = MEASURED_BYTES * 1_000_000_000.0 / 1024.0 / 1024.0 / elapsedNanos;
+          }
+          double[] sortedRates = rates.clone();
+          Arrays.sort(sortedRates);
+          System.out.printf(
+              "PERFORMANCE_RESULT: window=%d KiB tcpNoDelay=%s flushMode=%s payload=%d MiB runs=%d application-MiB/s=[%.1f,%.1f,%.1f] median=%.1f range=%.1f..%.1f round-trip-wire-median=%.1f MiB/s process-cpu-avg=%.1f%% peak=%.1f%% system-cpu-avg=%.1f%% peak=%.1f%% samples=%d%n",
+              flowWindowBytes / 1024,
+              tcpNoDelay,
+              flushMode,
+              MEASURED_BYTES / 1024 / 1024,
+              MEASURED_RUNS,
+              rates[0],
+              rates[1],
+              rates[2],
+              sortedRates[1],
+              sortedRates[0],
+              sortedRates[sortedRates.length - 1],
+              2.0 * sortedRates[1],
+              cpu.averageProcessPercent(),
+              cpu.peakProcessPercent(),
+              cpu.averageSystemPercent(),
+              cpu.peakSystemPercent(),
+              cpu.sampleCount());
+        }
       }
     } finally {
       running.set(false);
@@ -91,6 +128,79 @@ public final class PerformanceSmoke {
       Files.deleteIfExists(temp.resolve("client.properties"));
       Files.deleteIfExists(temp.resolve("token"));
       Files.deleteIfExists(temp);
+    }
+  }
+
+  private static final class CpuSampler implements AutoCloseable {
+    private final AtomicBoolean running = new AtomicBoolean(true);
+    private final AtomicLong processCpuSumTenthsPercent = new AtomicLong();
+    private final AtomicLong processCpuPeakTenthsPercent = new AtomicLong();
+    private final AtomicLong sumTenthsPercent = new AtomicLong();
+    private final AtomicLong peakTenthsPercent = new AtomicLong();
+    private final AtomicInteger samples = new AtomicInteger();
+    private final Thread thread;
+
+    CpuSampler() {
+      thread =
+          new Thread(
+              () -> {
+                com.sun.management.OperatingSystemMXBean os =
+                    ManagementFactory.getPlatformMXBean(
+                        com.sun.management.OperatingSystemMXBean.class);
+                while (running.get()) {
+                  double processLoad = os == null ? -1 : os.getProcessCpuLoad();
+                  if (processLoad >= 0) {
+                    long tenthsPercent = Math.round(processLoad * 1000);
+                    processCpuSumTenthsPercent.addAndGet(tenthsPercent);
+                    processCpuPeakTenthsPercent.accumulateAndGet(tenthsPercent, Math::max);
+                  }
+                  double load = os == null ? -1 : os.getSystemCpuLoad();
+                  if (load >= 0) {
+                    long tenthsPercent = Math.round(load * 1000);
+                    sumTenthsPercent.addAndGet(tenthsPercent);
+                    peakTenthsPercent.accumulateAndGet(tenthsPercent, Math::max);
+                    samples.incrementAndGet();
+                  }
+                  try {
+                    Thread.sleep(250);
+                  } catch (InterruptedException interrupted) {
+                    Thread.currentThread().interrupt();
+                    return;
+                  }
+                }
+              },
+              "performance-cpu-sampler");
+      thread.setDaemon(true);
+      thread.start();
+    }
+
+    double averageSystemPercent() {
+      int count = samples.get();
+      return count == 0 ? 0 : sumTenthsPercent.get() / (double) count / 10.0;
+    }
+
+    double averageProcessPercent() {
+      int count = samples.get();
+      return count == 0 ? 0 : processCpuSumTenthsPercent.get() / (double) count / 10.0;
+    }
+
+    double peakProcessPercent() {
+      return processCpuPeakTenthsPercent.get() / 10.0;
+    }
+
+    double peakSystemPercent() {
+      return peakTenthsPercent.get() / 10.0;
+    }
+
+    int sampleCount() {
+      return samples.get();
+    }
+
+    @Override
+    public void close() throws InterruptedException {
+      running.set(false);
+      thread.interrupt();
+      thread.join(1000);
     }
   }
 

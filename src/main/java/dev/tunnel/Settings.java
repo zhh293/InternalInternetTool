@@ -107,6 +107,24 @@ final class Settings {
     return values.getProperty(key, fallback).trim();
   }
 
+  boolean optionalBoolean(String key, boolean fallback) {
+    String value = optional(key, Boolean.toString(fallback));
+    if ("true".equalsIgnoreCase(value)) return true;
+    if ("false".equalsIgnoreCase(value)) return false;
+    throw new IllegalArgumentException("Invalid boolean value for " + key + ": " + value);
+  }
+
+  boolean consolidateFlushOutsideRead() {
+    switch (optional("flushMode", "latency")) {
+      case "latency":
+        return false;
+      case "balanced":
+        return true;
+      default:
+        throw new IllegalArgumentException("flushMode must be latency or balanced");
+    }
+  }
+
   int port(String key) {
     return parsePort(required(key), key);
   }

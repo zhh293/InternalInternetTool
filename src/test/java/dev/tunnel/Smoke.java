@@ -44,6 +44,7 @@ public final class Smoke {
       serverValues.setProperty("publicBindHost", "127.0.0.1");
       serverValues.setProperty("allowedPortStart", String.valueOf(publicPort));
       serverValues.setProperty("allowedPortEnd", String.valueOf(publicPort));
+      serverValues.setProperty("flowWindowBytes", String.valueOf(64 * 1024));
       serverValues.setProperty("tokenFile", secret.toString());
       serverValues.setProperty("certFile", certificate.certificate().getAbsolutePath());
       serverValues.setProperty("keyFile", certificate.privateKey().getAbsolutePath());
@@ -57,6 +58,7 @@ public final class Smoke {
       clientValues.setProperty("clientId", "smoke-client");
       clientValues.setProperty("tokenFile", secret.toString());
       clientValues.setProperty("caFile", certificate.certificate().getAbsolutePath());
+      clientValues.setProperty("flowWindowBytes", String.valueOf(128 * 1024));
       clientValues.setProperty("map.web", publicPort + ",127.0.0.1," + echo.getLocalPort());
       try (OutputStream output = Files.newOutputStream(clientConfig)) {
         clientValues.store(output, "test");

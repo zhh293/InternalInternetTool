@@ -32,6 +32,8 @@ public final class StressSmoke {
     int connectionsPerClient = args.length > 1 ? Integer.parseInt(args[1]) : 4;
     int durationSeconds = args.length > 2 ? Integer.parseInt(args[2]) : 30;
     int muxPoolSize = args.length > 3 ? Integer.parseInt(args[3]) : 2;
+    boolean tcpNoDelay = Boolean.parseBoolean(System.getProperty("tunnel.test.tcpNoDelay", "true"));
+    String flushMode = System.getProperty("tunnel.test.flushMode", "latency");
     if (clientCount < 1 || connectionsPerClient < 1 || durationSeconds < 1 || muxPoolSize < 1 || muxPoolSize > 32)
       throw new IllegalArgumentException("Usage: StressSmoke [clients] [connectionsPerClient] [seconds] [muxPoolSize]");
 
@@ -68,6 +70,8 @@ public final class StressSmoke {
       serverValues.setProperty(
           "allowedPortEnd", String.valueOf(Collections.max(publicPorts)));
       serverValues.setProperty("muxPoolSize", String.valueOf(muxPoolSize));
+      serverValues.setProperty("tcpNoDelay", String.valueOf(tcpNoDelay));
+      serverValues.setProperty("flushMode", flushMode);
       serverValues.setProperty("maxPendingBytes", String.valueOf(64 * 1024 * 1024));
       serverValues.setProperty("managementPort", "0");
       serverValues.setProperty("tokenFile", secret.toString());
@@ -85,6 +89,8 @@ public final class StressSmoke {
         clientValues.setProperty("workPort", String.valueOf(workPort));
         clientValues.setProperty("clientId", "stress-client-" + i);
         clientValues.setProperty("muxPoolSize", String.valueOf(muxPoolSize));
+        clientValues.setProperty("tcpNoDelay", String.valueOf(tcpNoDelay));
+        clientValues.setProperty("flushMode", flushMode);
         clientValues.setProperty("tokenFile", secret.toString());
         clientValues.setProperty("caFile", certificate.certificate().getAbsolutePath());
         clientValues.setProperty("maxPendingBytes", String.valueOf(64 * 1024 * 1024));
@@ -103,19 +109,35 @@ public final class StressSmoke {
         for (int port : publicPorts) waitUntilMapped(port);
 
         CountDownLatch ready = new CountDownLatch(totalConnections);
-        CountDownLatch start = new CountDownLatch(1);
+        CountDownLatch warmupStart = new CountDownLatch(1);
+        CountDownLatch warmupDone = new CountDownLatch(totalConnections);
+        CountDownLatch measureStart = new CountDownLatch(1);
         CountDownLatch done = new CountDownLatch(totalConnections);
+        AtomicLong measureDeadlineNanos = new AtomicLong();
         for (int i = 0; i < totalConnections; i++) {
           int publicPort = publicPorts.get(i / connectionsPerClient);
           workers.submit(
               () -> runConnection(
-                  publicPort, durationSeconds, ready, start, done, bytes, operations, latencyNanos, errors));
+                  publicPort,
+                  ready,
+                  warmupStart,
+                  warmupDone,
+                  measureStart,
+                  measureDeadlineNanos,
+                  done,
+                  bytes,
+                  operations,
+                  latencyNanos,
+                  errors));
         }
         if (!ready.await(30, TimeUnit.SECONDS)) throw new AssertionError("Connections did not become ready");
+        warmupStart.countDown();
+        if (!warmupDone.await(30, TimeUnit.SECONDS)) throw new AssertionError("Connections did not warm up");
 
         Thread sampler = startSampler(running, maxHeapBytes, maxCpuPercent);
         long begin = System.nanoTime();
-        start.countDown();
+        measureDeadlineNanos.set(begin + TimeUnit.SECONDS.toNanos(durationSeconds));
+        measureStart.countDown();
         if (!done.await(durationSeconds + 30L, TimeUnit.SECONDS))
           throw new AssertionError("Stress workers did not finish");
         long elapsedNanos = System.nanoTime() - begin;
@@ -129,9 +151,11 @@ public final class StressSmoke {
             ? 0
             : latencyNanos.get() / 1_000_000.0 / operations.get();
         System.out.printf(
-            "STRESS_RESULT: clients=%d connections=%d duration=%.1f s bytes=%d MiB throughput=%.2f MiB/s operations=%d avg-echo-latency=%.3f ms errors=%d max-process-cpu=%.1f%% max-heap=%.1f MiB%n",
+            "STRESS_RESULT: clients=%d connections=%d tcpNoDelay=%s flushMode=%s duration=%.1f s bytes=%d MiB throughput=%.2f MiB/s operations=%d avg-echo-latency=%.3f ms errors=%d max-process-cpu=%.1f%% max-heap=%.1f MiB%n",
             clientCount,
             totalConnections,
+            tcpNoDelay,
+            flushMode,
             seconds,
             bytes.get() / 1024 / 1024,
             mibPerSecond,
@@ -154,9 +178,11 @@ public final class StressSmoke {
 
   private static void runConnection(
       int publicPort,
-      int durationSeconds,
       CountDownLatch ready,
-      CountDownLatch start,
+      CountDownLatch warmupStart,
+      CountDownLatch warmupDone,
+      CountDownLatch measureStart,
+      AtomicLong measureDeadlineNanos,
       CountDownLatch done,
       AtomicLong bytes,
       AtomicLong operations,
@@ -165,13 +191,20 @@ public final class StressSmoke {
     try (Socket socket = new Socket("127.0.0.1", publicPort)) {
       socket.setSoTimeout(2000);
       ready.countDown();
-      start.await();
       byte[] payload = new byte[PAYLOAD_BYTES];
       for (int i = 0; i < payload.length; i++) payload[i] = (byte) i;
       byte[] response = new byte[PAYLOAD_BYTES];
       InputStream input = socket.getInputStream();
       OutputStream output = socket.getOutputStream();
-      long end = System.nanoTime() + TimeUnit.SECONDS.toNanos(durationSeconds);
+      warmupStart.await();
+      for (int i = 0; i < 8; i++) {
+        output.write(payload);
+        output.flush();
+        readFully(input, response);
+      }
+      warmupDone.countDown();
+      measureStart.await();
+      long end = measureDeadlineNanos.get();
       while (System.nanoTime() < end) {
         long operationStart = System.nanoTime();
         output.write(payload);
@@ -185,6 +218,7 @@ public final class StressSmoke {
       errors.incrementAndGet();
     } finally {
       ready.countDown();
+      warmupDone.countDown();
       done.countDown();
     }
   }

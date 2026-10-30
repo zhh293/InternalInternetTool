@@ -19,4 +19,26 @@ map.web=28080,127.0.0.1,8080
 # health.web=tcp,3,3,10
 # bandwidth.web=1MB
 # muxPoolSize=2
+# Separate TLS/TCP work connections dedicated to UDP to avoid TCP stream head-of-line blocking.
+# Set to 0 to carry UDP on the TCP pool (default: 1).
+# udpMuxPoolSize=1
+# latency (default): flush immediately outside read loops; balanced: batch until an event-loop task.
+# flushMode=latency
+# Disable Nagle's algorithm on TCP connections (default: true).
+# tcpNoDelay=true
 # maxPendingBytes=8388608
+# Per-stream TCP/HTTP receive window (64 KiB to 64 MiB; default 256 KiB).
+# Increase for high-bandwidth, high-latency links; this raises per-stream buffering.
+# flowWindowBytes=262144
+# Aggregate outstanding TCP/HTTP windows per client process (default 512 MiB).
+# maxFlowWindowBytes=536870912
+# UDP socket send/receive buffer per local UDP stream (default 256 KiB).
+# udpSocketBufferBytes=262144
+# High watermark for queued writes on UDP-only TLS mux channels.
+# Lower values apply backpressure sooner during overload; default is 8 MiB.
+# udpMuxWriteBufferHighWaterMarkBytes=8388608
+# Both ends must enable this and use udpMuxPoolSize > 1.
+# Spreads one UDP stream across mux connections; datagram order may change.
+# udpMuxStriping=false
+# Dedicated Netty UDP I/O threads (default: half the detected CPUs, capped at 8).
+# udpIoThreads=2

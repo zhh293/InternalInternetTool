@@ -8,9 +8,15 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
+import java.net.SocketAddress;
 import java.net.Socket;
 import java.net.URL;
+import java.nio.ByteBuffer;
+import java.nio.channels.DatagramChannel;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -21,6 +27,9 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicLongArray;
+import java.util.concurrent.atomic.AtomicReference;
 import javax.net.ssl.SNIHostName;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLParameters;
@@ -30,16 +39,30 @@ import javax.net.ssl.X509TrustManager;
 
 /** End-to-end check for UDP, HTTP Host routing and the management API. */
 public final class FeatureSmoke {
+  private static final int UDP_PERF_MAGIC = 0x54554E4C;
+
   public static void main(String[] args) throws Exception {
-    if (args.length > 1 || (args.length == 1 && !"--limits".equals(args[0])))
-      throw new IllegalArgumentException("Usage: FeatureSmoke [--limits]");
+    if (args.length > 1
+        || (args.length == 1
+            && !"--limits".equals(args[0])
+            && !"--udp-perf".equals(args[0])))
+      throw new IllegalArgumentException("Usage: FeatureSmoke [--limits|--udp-perf]");
+    if (args.length == 1 && "--udp-perf".equals(args[0]))
+      System.setProperty(
+          "tunnel.test.collectUdpPerfStats",
+          String.valueOf(
+              Boolean.parseBoolean(
+                  System.getProperty("tunnel.test.detailedUdpPerfStats", "true"))));
     Path temp = Files.createTempDirectory("tunnel-feature-smoke-");
     SelfSignedCertificate certificate = new SelfSignedCertificate("localhost");
     AtomicBoolean running = new AtomicBoolean(true);
     AtomicInteger unhealthyRequests = new AtomicInteger();
+    AtomicInteger udpEchoReceived = new AtomicInteger();
     try (DatagramSocket udpEcho = new DatagramSocket(0, InetAddress.getByName("127.0.0.1"));
         ServerSocket httpEcho = new ServerSocket(0, 20, InetAddress.getByName("127.0.0.1"));
         ServerSocket unhealthyHttp = new ServerSocket(0, 20, InetAddress.getByName("127.0.0.1"))) {
+      udpEcho.setReceiveBufferSize(16 * 1024 * 1024);
+      udpEcho.setSendBufferSize(16 * 1024 * 1024);
       Set<Integer> used = new HashSet<>();
       used.add(udpEcho.getLocalPort());
       used.add(httpEcho.getLocalPort());
@@ -63,6 +86,9 @@ public final class FeatureSmoke {
       Path serverConfig = temp.resolve("server.properties"),
           clientConfig = temp.resolve("client.properties");
       Properties server = new Properties();
+      String flushMode = System.getProperty("tunnel.test.flushMode", "latency");
+      int udpMuxPoolSize = Integer.getInteger("tunnel.test.udpMuxPoolSize", 1);
+      server.setProperty("flushMode", flushMode);
       server.setProperty("bindHost", "127.0.0.1");
       server.setProperty("controlPort", String.valueOf(control));
       server.setProperty("workPort", String.valueOf(work));
@@ -74,23 +100,54 @@ public final class FeatureSmoke {
       server.setProperty("managementPort", String.valueOf(management));
       server.setProperty("managementBindHost", "127.0.0.1");
       server.setProperty("muxPoolSize", "2");
+      server.setProperty("udpMuxPoolSize", String.valueOf(udpMuxPoolSize));
+      String udpMuxStriping = System.getProperty("tunnel.test.udpMuxStriping", "false");
+      server.setProperty("udpMuxStriping", udpMuxStriping);
+      String udpMuxWriteHighWaterMarkBytes =
+          System.getProperty("tunnel.test.udpMuxWriteHighWaterMarkBytes");
+      String serverUdpMuxWriteHighWaterMarkBytes =
+          System.getProperty(
+              "tunnel.test.serverUdpMuxWriteHighWaterMarkBytes",
+              udpMuxWriteHighWaterMarkBytes);
+      if (args.length == 1
+          && "--udp-perf".equals(args[0])
+          && serverUdpMuxWriteHighWaterMarkBytes != null)
+        server.setProperty(
+            "udpMuxWriteBufferHighWaterMarkBytes", serverUdpMuxWriteHighWaterMarkBytes);
       server.setProperty("httpsPort", String.valueOf(httpsPublic));
       server.setProperty("storeFile", temp.resolve("mappings.properties").toString());
       server.setProperty("clientsFile", clientsFile.toString());
       server.setProperty("managementTokenFile", managementTokenFile.toString());
+      String udpSocketBufferBytes = System.getProperty("tunnel.test.udpSocketBufferBytes");
+      if (args.length == 1
+          && "--udp-perf".equals(args[0])
+          && udpSocketBufferBytes != null) server.setProperty("udpSocketBufferBytes", udpSocketBufferBytes);
       server.setProperty("certFile", certificate.certificate().getAbsolutePath());
       server.setProperty("keyFile", certificate.privateKey().getAbsolutePath());
       try (OutputStream output = Files.newOutputStream(serverConfig)) {
         server.store(output, "feature smoke");
       }
       Properties client = new Properties();
+      client.setProperty("flushMode", flushMode);
       client.setProperty("serverHost", "localhost");
       client.setProperty("controlPort", String.valueOf(control));
       client.setProperty("workPort", String.valueOf(work));
       client.setProperty("clientId", "feature-client");
       client.setProperty("clientTokenFile", clientTokenFile.toString());
       client.setProperty("caFile", certificate.certificate().getAbsolutePath());
+      if (args.length == 1
+          && "--udp-perf".equals(args[0])
+          && udpSocketBufferBytes != null) client.setProperty("udpSocketBufferBytes", udpSocketBufferBytes);
+      if (args.length == 1
+          && "--udp-perf".equals(args[0])
+          && System.getProperty("tunnel.test.clientUdpMuxWriteHighWaterMarkBytes", udpMuxWriteHighWaterMarkBytes) != null)
+        client.setProperty(
+            "udpMuxWriteBufferHighWaterMarkBytes",
+            System.getProperty(
+                "tunnel.test.clientUdpMuxWriteHighWaterMarkBytes", udpMuxWriteHighWaterMarkBytes));
       client.setProperty("muxPoolSize", "2");
+      client.setProperty("udpMuxPoolSize", String.valueOf(udpMuxPoolSize));
+      client.setProperty("udpMuxStriping", udpMuxStriping);
       client.setProperty("http.web.locations", "/health");
       client.setProperty("health.web", "http,1,2,2");
       client.setProperty("udp.echo", udpPublic + ",127.0.0.1," + udpEcho.getLocalPort());
@@ -98,7 +155,8 @@ public final class FeatureSmoke {
       try (OutputStream output = Files.newOutputStream(clientConfig)) {
         client.store(output, "feature smoke");
       }
-      Thread udpThread = new Thread(() -> udpEchoLoop(udpEcho, running), "udp-echo");
+      Thread udpThread =
+          new Thread(() -> udpEchoLoop(udpEcho, running, udpEchoReceived), "udp-echo");
       udpThread.setDaemon(true);
       udpThread.start();
       Thread httpThread = new Thread(() -> httpEchoLoop(httpEcho, running), "http-echo");
@@ -117,14 +175,23 @@ public final class FeatureSmoke {
         waitForStatus(management, "feature-client", managementToken);
         waitForHealthy(management, managementToken);
         udpRoundTrip(udpPublic, new byte[] {0, 1, 2, -1, 10});
+        byte[] largeDatagram = new byte[65507];
+        for (int i = 0; i < largeDatagram.length; i++) largeDatagram[i] = (byte) (i * 31);
+        udpRoundTrip(udpPublic, largeDatagram);
+        udpMixedDatagrams(udpPublic);
+        if (args.length == 1 && "--udp-perf".equals(args[0]))
+          udpBurst(udpPublic, udpEchoReceived, management, managementToken, agent);
         httpRoundTrip(httpPublic);
         httpBodyRoundTrip(httpPublic);
+        httpBodyRoundTrip(httpPublic, true);
         httpsRoundTrip(httpsPublic);
         String status = get("http://127.0.0.1:" + management + "/api/status", managementToken);
         if (!status.contains("feature-client")
             || !status.contains("UDP")
             || !status.contains("HTTP")
-            || !status.contains("\"muxes\":2")
+            || !status.contains("\"muxes\":" + (2 + udpMuxPoolSize))
+            || !status.contains("\"tcpMuxes\":2")
+            || !status.contains("\"udpMuxes\":" + udpMuxPoolSize)
             || !status.contains("\"healthy\":true"))
           throw new AssertionError("Management status missing feature mappings: " + status);
         postForm(
@@ -170,7 +237,7 @@ public final class FeatureSmoke {
         String metrics = get("http://127.0.0.1:" + management + "/metrics", managementToken);
         if (!metrics.contains("tunnel_clients") || !metrics.contains("tunnel_auth_failures_total"))
           throw new AssertionError("Prometheus metrics missing: " + metrics);
-        if (args.length == 1) {
+        if (args.length == 1 && "--limits".equals(args[0])) {
           httpHeaderBoundary(httpPublic);
           httpHeaderTimeout(httpPublic);
           dynamicStoreRollback(tunnel, management, managementToken, httpEcho.getLocalPort(), temp);
@@ -195,25 +262,54 @@ public final class FeatureSmoke {
   }
 
   private static int freePort(Set<Integer> used) throws Exception {
-    for (int i = 0; i < 30; i++)
+    for (int i = 0; i < 1000; i++)
       try (ServerSocket socket = new ServerSocket(0, 1, InetAddress.getByName("127.0.0.1"))) {
-        if (used.add(socket.getLocalPort())) return socket.getLocalPort();
+        int candidate = socket.getLocalPort();
+        try (DatagramSocket udp =
+            new DatagramSocket(candidate, InetAddress.getByName("127.0.0.1"))) {
+          if (used.add(candidate)) return candidate;
+        } catch (java.net.BindException occupiedByUdp) {
+          // Select a port that is free for both stream and datagram listeners.
+        }
       }
     throw new IllegalStateException("No free port");
   }
 
-  private static void udpEchoLoop(DatagramSocket socket, AtomicBoolean running) {
+  private static void udpEchoLoop(
+      DatagramSocket socket, AtomicBoolean running, AtomicInteger received) {
     byte[] buffer = new byte[65535];
+    DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
     while (running.get())
       try {
-        DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+        packet.setLength(buffer.length);
         socket.receive(packet);
-        socket.send(
-            new DatagramPacket(
-                packet.getData(), packet.getLength(), packet.getAddress(), packet.getPort()));
+        long echoReceivedNanos = System.nanoTime();
+        received.incrementAndGet();
+        if (packet.getLength() >= 32) {
+          int offset = packet.getOffset();
+          if (readBigEndianInt(packet.getData(), offset) == UDP_PERF_MAGIC) {
+            writeBigEndianLong(packet.getData(), offset + 16, echoReceivedNanos);
+            writeBigEndianLong(packet.getData(), offset + 24, System.nanoTime());
+          }
+        }
+        socket.send(packet);
       } catch (Exception ignored) {
         // Health checks may connect and close before sending a request.
       }
+  }
+
+  private static int readBigEndianInt(byte[] bytes, int offset) {
+    return (bytes[offset] & 0xff) << 24
+        | (bytes[offset + 1] & 0xff) << 16
+        | (bytes[offset + 2] & 0xff) << 8
+        | (bytes[offset + 3] & 0xff);
+  }
+
+  private static void writeBigEndianLong(byte[] bytes, int offset, long value) {
+    for (int index = Long.BYTES - 1; index >= 0; index--) {
+      bytes[offset + index] = (byte) value;
+      value >>>= Byte.SIZE;
+    }
   }
 
   private static void httpEchoLoop(ServerSocket server, AtomicBoolean running) {
@@ -239,6 +335,7 @@ public final class FeatureSmoke {
               length = Integer.parseInt(line.substring(line.indexOf(':') + 1).trim());
           body = input.readNBytes(length);
           if (body.length != length) throw new AssertionError("Incomplete POST body");
+
         }
         OutputStream output = socket.getOutputStream();
         output.write(
@@ -324,10 +421,12 @@ public final class FeatureSmoke {
 
   private static void udpRoundTrip(int port, byte[] expected) throws Exception {
     try (DatagramSocket socket = new DatagramSocket()) {
+      socket.setReceiveBufferSize(1024 * 1024);
+      socket.setSendBufferSize(1024 * 1024);
       socket.setSoTimeout(5000);
       socket.send(
           new DatagramPacket(expected, expected.length, InetAddress.getByName("127.0.0.1"), port));
-      byte[] result = new byte[64];
+      byte[] result = new byte[65535];
       DatagramPacket response = new DatagramPacket(result, result.length);
       socket.receive(response);
       if (response.getLength() != expected.length) throw new AssertionError("UDP length mismatch");
@@ -363,8 +462,17 @@ public final class FeatureSmoke {
   }
 
   private static void httpBodyRoundTrip(int port) throws Exception {
+    httpBodyRoundTrip(port, false);
+  }
+
+  private static void httpBodyRoundTrip(int port, boolean fragmented) throws Exception {
+    httpBodyRoundTrip(port, fragmented, javax.net.SocketFactory.getDefault());
+  }
+
+  private static void httpBodyRoundTrip(int port, boolean fragmented,
+      javax.net.SocketFactory factory) throws Exception {
     byte[] body = new byte[96 * 1024];
-    for (int i = 0; i < body.length; i++) body[i] = (byte) (i * 31);
+    new java.util.Random(8675309L).nextBytes(body);
     byte[] marker = "\r\n\r\n".getBytes(StandardCharsets.ISO_8859_1);
     System.arraycopy(marker, 0, body, 10, marker.length);
     System.arraycopy(marker, 0, body, 70000, marker.length);
@@ -373,11 +481,23 @@ public final class FeatureSmoke {
                 + body.length
                 + "\r\nX-Forwarded-For: 203.0.113.1\r\nConnection: close\r\n\r\n")
             .getBytes(StandardCharsets.ISO_8859_1);
-    try (Socket socket = new Socket("127.0.0.1", port)) {
+    try (Socket socket = factory.createSocket("127.0.0.1", port)) {
       socket.setSoTimeout(10000);
       OutputStream output = socket.getOutputStream();
-      output.write(header);
-      output.write(body);
+      if (fragmented) {
+        output.write(header, 0, header.length - 2);
+        output.flush();
+        Thread.sleep(20);
+        output.write(header, header.length - 2, 2);
+        output.write(body, 0, 31);
+        output.flush();
+        Thread.sleep(20);
+        for (int offset = 31; offset < body.length; offset += 8191)
+          output.write(body, offset, Math.min(8191, body.length - offset));
+      } else {
+        output.write(header);
+        output.write(body);
+      }
       output.flush();
       InputStream input = socket.getInputStream();
       ByteArrayOutputStream responseHead = new ByteArrayOutputStream();
@@ -392,9 +512,521 @@ public final class FeatureSmoke {
           || !new String(response, 0, bodyStart, StandardCharsets.ISO_8859_1).contains("200 OK"))
         throw new AssertionError("POST response missing success status");
       byte[] echoed = input.readNBytes(body.length);
-      if (!java.util.Arrays.equals(body, echoed))
-        throw new AssertionError("HTTP request body changed during proxying");
+      if (!java.util.Arrays.equals(body, echoed)) {
+        throw new AssertionError("HTTP request body changed during proxying: expected=" + body.length + " received=" + echoed.length + " mismatch=" + java.util.Arrays.mismatch(body, echoed) + " fragmented=" + fragmented + " socket=" + socket.getClass().getSimpleName());
+      }
     }
+  }
+
+  private static void udpMixedDatagrams(int port) throws Exception {
+    try (DatagramSocket socket = new DatagramSocket()) {
+      socket.setSoTimeout(5000);
+      for (int length : new int[] {1, 4096, 16384, 3}) {
+        byte[] bytes = new byte[length];
+        for (int i = 0; i < length; i++) bytes[i] = (byte) (i + length);
+        socket.send(new DatagramPacket(bytes, bytes.length,
+            InetAddress.getByName("127.0.0.1"), port));
+        byte[] result = new byte[65535];
+        DatagramPacket response = new DatagramPacket(result, result.length);
+        socket.receive(response);
+        if (response.getLength() != length
+            || !java.util.Arrays.equals(bytes, java.util.Arrays.copyOf(result, length)))
+          throw new AssertionError("UDP packet boundary or payload changed");
+      }
+    }
+  }
+
+  private static void udpBurst(
+      int port,
+      AtomicInteger echoReceived,
+      int management,
+      String managementToken,
+      Client client)
+      throws Exception {
+    final int packets = Integer.getInteger("tunnel.test.udpPackets", 20000);
+    final int payloadBytes = 64;
+    final long paceNanos = Long.getLong("tunnel.test.udpPaceNanos", 0L);
+    final boolean detailedStats =
+        Boolean.parseBoolean(System.getProperty("tunnel.test.detailedUdpPerfStats", "true"));
+    int sent = 0;
+    AtomicInteger sentCount = new AtomicInteger();
+    AtomicInteger received = new AtomicInteger();
+    AtomicLong lastResponseNanos = new AtomicLong();
+    AtomicLongArray sentAtNanos = new AtomicLongArray(packets);
+    long[] rttNanos = new long[packets];
+    long[] requestPathNanos = new long[packets];
+    long[] requestToServerMuxWriteNanos = new long[packets];
+    long[] serverMuxWriteToClientUdpNanos = new long[packets];
+    long[] clientUdpWriteToEchoNanos = new long[packets];
+    long[] clientUdpWriteQueueNanos = new long[packets];
+    long[] clientUdpWriteCompleteToEchoNanos = new long[packets];
+    long[] echoServiceNanos = new long[packets];
+    long[] responsePathNanos = new long[packets];
+    long[] clientUdpReadPathNanos = new long[packets];
+    long[] clientMuxToServerNanos = new long[packets];
+    long[] clientMuxWriteToServerNanos = new long[packets];
+    long[] clientMuxWriteQueueNanos = new long[packets];
+    long[] clientMuxWriteCompleteToServerNanos = new long[packets];
+    long[] serverOutputPathNanos = new long[packets];
+    InetSocketAddress remote = new InetSocketAddress("127.0.0.1", port);
+    try (DatagramChannel channel = DatagramChannel.open(); Selector selector = Selector.open()) {
+      channel.configureBlocking(false);
+      channel.setOption(java.net.StandardSocketOptions.SO_RCVBUF, 16 * 1024 * 1024);
+      channel.setOption(java.net.StandardSocketOptions.SO_SNDBUF, 16 * 1024 * 1024);
+      channel.bind(new InetSocketAddress("127.0.0.1", 0));
+      channel.register(selector, SelectionKey.OP_READ);
+      byte[] warmup = new byte[payloadBytes];
+      ByteBuffer sendBuffer = ByteBuffer.allocate(payloadBytes);
+      ByteBuffer receiveBuffer = ByteBuffer.allocate(65535);
+      sendBuffer.put(warmup).flip();
+      if (channel.send(sendBuffer, remote) != payloadBytes)
+        throw new AssertionError("UDP burst warmup send failed");
+      long warmDeadline = System.nanoTime() + java.util.concurrent.TimeUnit.SECONDS.toNanos(5);
+      boolean warmReceived = false;
+      while (!warmReceived && System.nanoTime() < warmDeadline) {
+        selector.select(100);
+        selector.selectedKeys().clear();
+        receiveBuffer.clear();
+        SocketAddress source = channel.receive(receiveBuffer);
+        warmReceived = source != null && receiveBuffer.position() == payloadBytes;
+      }
+      if (!warmReceived) throw new AssertionError("UDP burst warmup failed");
+      long tunnelBytesBefore =
+          metricValue(
+              get("http://127.0.0.1:" + management + "/metrics", managementToken),
+              "tunnel_bytes_from_public_total");
+      long publicBytesBefore =
+          metricValue(
+              get("http://127.0.0.1:" + management + "/metrics", managementToken),
+              "tunnel_bytes_to_public_total");
+      long udpDroppedBefore =
+          metricValue(
+              get("http://127.0.0.1:" + management + "/metrics", managementToken),
+              "tunnel_udp_dropped_total");
+      long clientDroppedBefore = client.udpMuxQueueDrops();
+      long clientLocalDrainTasksBefore = client.udpLocalEgressDrainTasks();
+      long clientMuxDrainTasksBefore = client.udpMuxEgressDrainTasks();
+      long clientMuxQueueDelayBefore = client.udpMuxEgressQueueDelayNanos();
+      long clientMuxQueueSamplesBefore = client.udpMuxEgressQueueDelaySamples();
+      long clientLocalUdpReadDelayBefore = client.udpLocalUdpReadDelayNanos();
+      long clientLocalUdpReadSamplesBefore = client.udpLocalUdpReadSamples();
+      long clientLocalQueueDelayBefore = client.udpLocalEgressQueueDelayNanos();
+      long clientLocalQueueDatagramsBefore = client.udpLocalEgressQueueDelayDatagrams();
+      long egressBatchesBefore = metricValue(
+          get("http://127.0.0.1:" + management + "/metrics", managementToken),
+          "tunnel_udp_egress_batches_total");
+      long egressDrainTasksBefore = metricValue(
+          get("http://127.0.0.1:" + management + "/metrics", managementToken),
+          "tunnel_udp_egress_drain_tasks_total");
+      long egressQueueDelayBefore = metricValue(
+          get("http://127.0.0.1:" + management + "/metrics", managementToken),
+          "tunnel_udp_egress_queue_delay_nanos_total");
+      long egressWritesBefore = metricValue(
+          get("http://127.0.0.1:" + management + "/metrics", managementToken),
+          "tunnel_udp_egress_writes_total");
+      long egressWriteNanosBefore = metricValue(
+          get("http://127.0.0.1:" + management + "/metrics", managementToken),
+          "tunnel_udp_egress_write_nanos_total");
+      long egressWriteSamplesBefore = metricValue(
+          get("http://127.0.0.1:" + management + "/metrics", managementToken),
+          "tunnel_udp_egress_write_samples_total");
+      int echoBefore = echoReceived.get();
+      long started = System.nanoTime();
+      long nextSendAt = started;
+      AtomicBoolean sendFinished = new AtomicBoolean();
+      AtomicReference<Throwable> readerFailure = new AtomicReference<>();
+      java.util.concurrent.CountDownLatch readerReady =
+          new java.util.concurrent.CountDownLatch(1);
+      Thread responseReader =
+          new Thread(
+              () -> {
+                long idleSince = 0;
+                long receiveDeadline = Long.MAX_VALUE;
+                readerReady.countDown();
+                try {
+                  while (true) {
+                    if (sendFinished.get()) {
+                      long now = System.nanoTime();
+                      if (receiveDeadline == Long.MAX_VALUE) {
+                        idleSince = now;
+                        receiveDeadline = now + java.util.concurrent.TimeUnit.SECONDS.toNanos(10);
+                      }
+                      if (received.get() >= sentCount.get()
+                          || now >= receiveDeadline
+                          || now - idleSince >= java.util.concurrent.TimeUnit.SECONDS.toNanos(1))
+                        break;
+                    }
+                    selector.select(100);
+                    selector.selectedKeys().clear();
+                    receiveBuffer.clear();
+                    boolean gotPacket = false;
+                    while (channel.receive(receiveBuffer) != null) {
+                      if (receiveBuffer.position() == payloadBytes) {
+                        recordUdpResponse(
+                            receiveBuffer,
+                            sentAtNanos,
+                            rttNanos,
+                            requestPathNanos,
+                            requestToServerMuxWriteNanos,
+                            serverMuxWriteToClientUdpNanos,
+                            clientUdpWriteToEchoNanos,
+                            clientUdpWriteQueueNanos,
+                            clientUdpWriteCompleteToEchoNanos,
+                            echoServiceNanos,
+                            responsePathNanos,
+                            clientUdpReadPathNanos,
+                            clientMuxToServerNanos,
+                            clientMuxWriteToServerNanos,
+                            clientMuxWriteQueueNanos,
+                            clientMuxWriteCompleteToServerNanos,
+                            client,
+                            serverOutputPathNanos);
+                        received.incrementAndGet();
+                        lastResponseNanos.set(System.nanoTime());
+                        gotPacket = true;
+                      }
+                      receiveBuffer.clear();
+                    }
+                    if (gotPacket && sendFinished.get()) idleSince = System.nanoTime();
+                  }
+                } catch (Throwable error) {
+                  readerFailure.set(error);
+                }
+              },
+              "udp-perf-reader");
+      responseReader.setDaemon(true);
+      responseReader.start();
+      if (!readerReady.await(5, java.util.concurrent.TimeUnit.SECONDS))
+        throw new AssertionError("UDP response reader did not start");
+      for (int i = 0; i < packets; i++) {
+        sendBuffer.clear();
+        sendBuffer.putInt(UDP_PERF_MAGIC).putInt(i);
+        long packetSentAt = System.nanoTime();
+        sendBuffer.putLong(packetSentAt);
+        while (sendBuffer.position() < payloadBytes) sendBuffer.put((byte) 0);
+        sendBuffer.flip();
+        sentAtNanos.set(i, packetSentAt);
+        if (channel.send(sendBuffer, remote) == payloadBytes) {
+          sent++;
+          sentCount.incrementAndGet();
+        } else sentAtNanos.set(i, 0);
+        if (paceNanos > 0) {
+          nextSendAt += paceNanos;
+          paceUntil(nextSendAt);
+        }
+      }
+      long sendEnded = System.nanoTime();
+      sendFinished.set(true);
+      selector.wakeup();
+      responseReader.join(java.util.concurrent.TimeUnit.SECONDS.toMillis(11));
+      if (responseReader.isAlive()) throw new AssertionError("UDP response reader stalled");
+      if (readerFailure.get() != null)
+        throw new AssertionError("UDP response reader failed", readerFailure.get());
+      long tunnelBytesAfter =
+          metricValue(
+              get("http://127.0.0.1:" + management + "/metrics", managementToken),
+              "tunnel_bytes_from_public_total");
+      long publicBytesAfter =
+          metricValue(
+              get("http://127.0.0.1:" + management + "/metrics", managementToken),
+              "tunnel_bytes_to_public_total");
+      long udpDroppedAfter =
+          metricValue(
+              get("http://127.0.0.1:" + management + "/metrics", managementToken),
+              "tunnel_udp_dropped_total");
+      long clientDroppedAfter = client.udpMuxQueueDrops();
+      long clientLocalDrainTasksAfter = client.udpLocalEgressDrainTasks();
+      long clientMuxDrainTasksAfter = client.udpMuxEgressDrainTasks();
+      long clientMuxQueueDelayAfter = client.udpMuxEgressQueueDelayNanos();
+      long clientMuxQueueSamplesAfter = client.udpMuxEgressQueueDelaySamples();
+      long clientMuxQueueDelayMax = client.udpMuxEgressQueueDelayMaxNanos();
+      long clientLocalUdpReadDelayAfter = client.udpLocalUdpReadDelayNanos();
+      long clientLocalUdpReadSamplesAfter = client.udpLocalUdpReadSamples();
+      long clientLocalUdpReadDelayMax = client.udpLocalUdpReadMaxNanos();
+      long clientLocalQueueDelayAfter = client.udpLocalEgressQueueDelayNanos();
+      long clientLocalQueueDatagramsAfter = client.udpLocalEgressQueueDelayDatagrams();
+      long clientLocalQueueDelayMax = client.udpLocalEgressQueueDelayMaxNanos();
+      long egressBatchesAfter = metricValue(
+          get("http://127.0.0.1:" + management + "/metrics", managementToken),
+          "tunnel_udp_egress_batches_total");
+      long egressDrainTasksAfter = metricValue(
+          get("http://127.0.0.1:" + management + "/metrics", managementToken),
+          "tunnel_udp_egress_drain_tasks_total");
+      long egressQueueDelayAfter = metricValue(
+          get("http://127.0.0.1:" + management + "/metrics", managementToken),
+          "tunnel_udp_egress_queue_delay_nanos_total");
+      long egressQueueDelayMax = metricValue(
+          get("http://127.0.0.1:" + management + "/metrics", managementToken),
+          "tunnel_udp_egress_queue_delay_nanos_max");
+      long egressWritesAfter = metricValue(
+          get("http://127.0.0.1:" + management + "/metrics", managementToken),
+          "tunnel_udp_egress_writes_total");
+      long egressWriteNanosAfter = metricValue(
+          get("http://127.0.0.1:" + management + "/metrics", managementToken),
+          "tunnel_udp_egress_write_nanos_total");
+      long egressWriteSamplesAfter = metricValue(
+          get("http://127.0.0.1:" + management + "/metrics", managementToken),
+          "tunnel_udp_egress_write_samples_total");
+      long egressWriteMax = metricValue(
+          get("http://127.0.0.1:" + management + "/metrics", managementToken),
+          "tunnel_udp_egress_write_nanos_max");
+      double seconds = (System.nanoTime() - started) / 1_000_000_000.0;
+      double sendSeconds = (sendEnded - started) / 1_000_000_000.0;
+      double receiveSeconds =
+          ((lastResponseNanos.get() == 0 ? sendEnded : lastResponseNanos.get()) - started)
+              / 1_000_000_000.0;
+      int observed = 0;
+      int receivedCount = received.get();
+      long[] observedRttNanos = new long[receivedCount];
+      for (long rtt : rttNanos) if (rtt > 0) observedRttNanos[observed++] = rtt;
+      java.util.Arrays.sort(observedRttNanos, 0, observed);
+      long[] observedRequestNanos = sortedPositiveNanos(requestPathNanos);
+      long[] observedRequestToMuxWriteNanos = sortedPositiveNanos(requestToServerMuxWriteNanos);
+      long[] observedServerMuxToClientUdpNanos =
+          sortedPositiveNanos(serverMuxWriteToClientUdpNanos);
+      long[] observedClientUdpWriteToEchoNanos = sortedPositiveNanos(clientUdpWriteToEchoNanos);
+      long[] observedClientUdpWriteQueueNanos = sortedPositiveNanos(clientUdpWriteQueueNanos);
+      long[] observedClientUdpWriteCompleteToEchoNanos =
+          sortedPositiveNanos(clientUdpWriteCompleteToEchoNanos);
+      long[] observedEchoNanos = sortedPositiveNanos(echoServiceNanos);
+      long[] observedResponseNanos = sortedPositiveNanos(responsePathNanos);
+      long[] observedClientUdpReadNanos =
+          sortedPositiveNanos(clientUdpReadPathNanos);
+      long[] observedClientMuxToServerNanos =
+          sortedPositiveNanos(clientMuxToServerNanos);
+      long[] observedClientMuxWriteToServerNanos =
+          sortedPositiveNanos(clientMuxWriteToServerNanos);
+      long[] observedClientMuxWriteQueueNanos =
+          sortedPositiveNanos(clientMuxWriteQueueNanos);
+      long[] observedClientMuxWriteCompleteToServerNanos =
+          sortedPositiveNanos(clientMuxWriteCompleteToServerNanos);
+      long[] observedServerOutputNanos =
+          sortedPositiveNanos(serverOutputPathNanos);
+      double p50Millis = percentileMillis(observedRttNanos, observed, 0.50);
+      double p95Millis = percentileMillis(observedRttNanos, observed, 0.95);
+      double p99Millis = percentileMillis(observedRttNanos, observed, 0.99);
+      double requestP95Millis =
+          percentileMillis(observedRequestNanos, observedRequestNanos.length, 0.95);
+      double requestToMuxWriteP95Millis =
+          percentileMillis(
+              observedRequestToMuxWriteNanos, observedRequestToMuxWriteNanos.length, 0.95);
+      double serverMuxToClientUdpP95Millis =
+          percentileMillis(
+              observedServerMuxToClientUdpNanos,
+              observedServerMuxToClientUdpNanos.length,
+              0.95);
+      double clientUdpWriteToEchoP95Millis =
+          percentileMillis(
+              observedClientUdpWriteToEchoNanos,
+              observedClientUdpWriteToEchoNanos.length,
+              0.95);
+      double clientUdpWriteQueueP95Millis =
+          percentileMillis(
+              observedClientUdpWriteQueueNanos,
+              observedClientUdpWriteQueueNanos.length,
+              0.95);
+      double clientUdpWriteCompleteToEchoP95Millis =
+          percentileMillis(
+              observedClientUdpWriteCompleteToEchoNanos,
+              observedClientUdpWriteCompleteToEchoNanos.length,
+              0.95);
+      double echoP95Millis = percentileMillis(observedEchoNanos, observedEchoNanos.length, 0.95);
+      double responseP95Millis =
+          percentileMillis(observedResponseNanos, observedResponseNanos.length, 0.95);
+      double clientUdpReadP95Millis =
+          percentileMillis(observedClientUdpReadNanos, observedClientUdpReadNanos.length, 0.95);
+      double clientMuxToServerP95Millis =
+          percentileMillis(observedClientMuxToServerNanos, observedClientMuxToServerNanos.length, 0.95);
+      double clientMuxWriteToServerP95Millis =
+          percentileMillis(
+              observedClientMuxWriteToServerNanos,
+              observedClientMuxWriteToServerNanos.length,
+              0.95);
+      double clientMuxWriteQueueP95Millis =
+          percentileMillis(
+              observedClientMuxWriteQueueNanos,
+              observedClientMuxWriteQueueNanos.length,
+              0.95);
+      double clientMuxWriteCompleteToServerP95Millis =
+          percentileMillis(
+              observedClientMuxWriteCompleteToServerNanos,
+              observedClientMuxWriteCompleteToServerNanos.length,
+              0.95);
+      double serverOutputP95Millis =
+          percentileMillis(observedServerOutputNanos, observedServerOutputNanos.length, 0.95);
+      long egressBatchCount = egressBatchesAfter - egressBatchesBefore;
+      long egressDrainTaskCount = egressDrainTasksAfter - egressDrainTasksBefore;
+      long clientLocalDrainTaskCount = clientLocalDrainTasksAfter - clientLocalDrainTasksBefore;
+      long clientMuxDrainTaskCount = clientMuxDrainTasksAfter - clientMuxDrainTasksBefore;
+      long clientMuxQueueSamples = clientMuxQueueSamplesAfter - clientMuxQueueSamplesBefore;
+      long clientLocalUdpReadSamples =
+          clientLocalUdpReadSamplesAfter - clientLocalUdpReadSamplesBefore;
+      long clientLocalQueuedDatagrams =
+          clientLocalQueueDatagramsAfter - clientLocalQueueDatagramsBefore;
+      long egressWriteCount = egressWritesAfter - egressWritesBefore;
+      long egressWriteSampleCount = egressWriteSamplesAfter - egressWriteSamplesBefore;
+      System.out.printf(
+          "UDP_PERF: detailed=%s payload=%d bytes sent=%d public-in=%d public-out=%d echo-in=%d received=%d client-queue-drop=%d server-drop=%d loss=%.2f%% send-rate=%.0f pps receive-rate=%.0f pps rtt-p50=%.3f ms p95=%.3f ms p99=%.3f ms request-p95=%.3f ms request-to-server-mux-write-p95=%.3f ms server-mux-write-to-client-udp-p95=%.3f ms client-udp-write-to-echo-p95=%.3f ms client-udp-write-queue-p95=%.3f ms client-udp-write-complete-to-echo-p95=%.3f ms echo-p95=%.3f ms response-p95=%.3f ms client-udp-read-p95=%.3f ms client-mux-to-server-p95=%.3f ms client-mux-write-to-server-p95=%.3f ms client-mux-write-queue-p95=%.3f ms client-write-complete-to-server-p95=%.3f ms server-output-p95=%.3f ms server-batches=%d server-drain-tasks=%d client-local-drain-tasks=%d client-mux-drain-tasks=%d datagrams-per-batch=%.1f batches-per-server-drain=%.1f server-queue-avg=%.3f ms max=%.3f ms client-local-queue-avg=%.3f ms max=%.3f ms client-mux-queue-avg=%.3f ms max=%.3f ms client-local-udp-read-avg=%.3f ms max=%.3f ms egress-write-avg-sampled=%.3f ms samples=%d/%d max=%.3f ms elapsed=%.3f s%n",
+          detailedStats,
+          payloadBytes,
+          sent,
+          (tunnelBytesAfter - tunnelBytesBefore) / payloadBytes,
+          (publicBytesAfter - publicBytesBefore) / payloadBytes,
+          echoReceived.get() - echoBefore,
+          receivedCount,
+          clientDroppedAfter - clientDroppedBefore,
+          udpDroppedAfter - udpDroppedBefore,
+          sent == 0 ? 0.0 : 100.0 * (sent - receivedCount) / sent,
+          sendSeconds == 0 ? 0.0 : sent / sendSeconds,
+          receiveSeconds == 0 ? 0.0 : receivedCount / receiveSeconds,
+          p50Millis,
+          p95Millis,
+          p99Millis,
+          requestP95Millis,
+          requestToMuxWriteP95Millis,
+          serverMuxToClientUdpP95Millis,
+          clientUdpWriteToEchoP95Millis,
+          clientUdpWriteQueueP95Millis,
+          clientUdpWriteCompleteToEchoP95Millis,
+          echoP95Millis,
+          responseP95Millis,
+          clientUdpReadP95Millis,
+          clientMuxToServerP95Millis,
+          clientMuxWriteToServerP95Millis,
+          clientMuxWriteQueueP95Millis,
+          clientMuxWriteCompleteToServerP95Millis,
+          serverOutputP95Millis,
+          egressBatchCount,
+          egressDrainTaskCount,
+          clientLocalDrainTaskCount,
+          clientMuxDrainTaskCount,
+          egressBatchCount == 0 ? 0.0 : egressWriteCount / (double) egressBatchCount,
+          egressDrainTaskCount == 0 ? 0.0 : egressBatchCount / (double) egressDrainTaskCount,
+          egressBatchCount == 0 ? 0.0 : (egressQueueDelayAfter - egressQueueDelayBefore) / (double) egressBatchCount / 1_000_000.0,
+          egressQueueDelayMax / 1_000_000.0,
+          clientLocalQueuedDatagrams == 0
+              ? 0.0
+              : (clientLocalQueueDelayAfter - clientLocalQueueDelayBefore)
+                  / (double) clientLocalQueuedDatagrams
+                  / 1_000_000.0,
+          clientLocalQueueDelayMax / 1_000_000.0,
+          clientMuxQueueSamples == 0
+              ? 0.0
+              : (clientMuxQueueDelayAfter - clientMuxQueueDelayBefore)
+                  / (double) clientMuxQueueSamples
+                  / 1_000_000.0,
+          client.udpMuxEgressQueueDelayMaxNanos() / 1_000_000.0,
+          clientLocalUdpReadSamples == 0
+              ? 0.0
+              : (clientLocalUdpReadDelayAfter - clientLocalUdpReadDelayBefore)
+                  / (double) clientLocalUdpReadSamples
+                  / 1_000_000.0,
+          clientLocalUdpReadDelayMax / 1_000_000.0,
+          egressWriteSampleCount == 0 ? 0.0 : (egressWriteNanosAfter - egressWriteNanosBefore) / (double) egressWriteSampleCount / 1_000_000.0,
+          egressWriteSampleCount,
+          egressWriteCount,
+          egressWriteMax / 1_000_000.0,
+          seconds);
+    }
+  }
+
+  private static void recordUdpResponse(
+      ByteBuffer response,
+      AtomicLongArray sentAtNanos,
+      long[] rttNanos,
+      long[] requestPathNanos,
+      long[] requestToServerMuxWriteNanos,
+      long[] serverMuxWriteToClientUdpNanos,
+      long[] clientUdpWriteToEchoNanos,
+      long[] clientUdpWriteQueueNanos,
+      long[] clientUdpWriteCompleteToEchoNanos,
+      long[] echoServiceNanos,
+      long[] responsePathNanos,
+      long[] clientUdpReadPathNanos,
+      long[] clientMuxToServerNanos,
+      long[] clientMuxWriteToServerNanos,
+      long[] clientMuxWriteQueueNanos,
+      long[] clientMuxWriteCompleteToServerNanos,
+      Client client,
+      long[] serverOutputPathNanos) {
+    if (response.getInt(0) != UDP_PERF_MAGIC) return;
+    int packetId = response.getInt(4);
+    if (packetId < 0 || packetId >= rttNanos.length) return;
+    long sentAt = sentAtNanos.get(packetId);
+    long serverMuxWriteAt = response.getLong(56);
+    long clientUdpWriteAt = client.udpLocalDatagramWriteNanos(packetId);
+    long clientUdpWriteCompleteAt = client.udpLocalDatagramWriteCompleteNanos(packetId);
+    long echoReceivedAt = response.getLong(16);
+    long echoSentAt = response.getLong(24);
+    long clientUdpReadAt = response.getLong(32);
+    long serverDecodeAt = response.getLong(40);
+    long clientMuxWriteAt = response.getLong(48);
+    long clientMuxWriteCompleteAt = client.udpMuxWriteCompleteNanos(packetId);
+    long receivedAt = System.nanoTime();
+    if (sentAt > 0 && echoReceivedAt >= sentAt && echoSentAt >= echoReceivedAt) {
+      rttNanos[packetId] = receivedAt - sentAt;
+      requestPathNanos[packetId] = echoReceivedAt - sentAt;
+      if (serverMuxWriteAt >= sentAt) {
+        requestToServerMuxWriteNanos[packetId] = serverMuxWriteAt - sentAt;
+        if (clientUdpWriteAt >= serverMuxWriteAt) {
+          serverMuxWriteToClientUdpNanos[packetId] = clientUdpWriteAt - serverMuxWriteAt;
+          if (echoReceivedAt >= clientUdpWriteAt)
+            clientUdpWriteToEchoNanos[packetId] = echoReceivedAt - clientUdpWriteAt;
+          if (clientUdpWriteCompleteAt >= clientUdpWriteAt) {
+            clientUdpWriteQueueNanos[packetId] = clientUdpWriteCompleteAt - clientUdpWriteAt;
+            if (echoReceivedAt >= clientUdpWriteCompleteAt)
+              clientUdpWriteCompleteToEchoNanos[packetId] =
+                  echoReceivedAt - clientUdpWriteCompleteAt;
+          }
+        }
+      }
+      echoServiceNanos[packetId] = echoSentAt - echoReceivedAt;
+      responsePathNanos[packetId] = receivedAt - echoSentAt;
+      if (clientUdpReadAt >= echoSentAt && serverDecodeAt >= clientUdpReadAt) {
+        clientUdpReadPathNanos[packetId] = clientUdpReadAt - echoSentAt;
+        clientMuxToServerNanos[packetId] = serverDecodeAt - clientUdpReadAt;
+        serverOutputPathNanos[packetId] = receivedAt - serverDecodeAt;
+        if (clientMuxWriteAt >= clientUdpReadAt && serverDecodeAt >= clientMuxWriteAt)
+          clientMuxWriteToServerNanos[packetId] = serverDecodeAt - clientMuxWriteAt;
+        if (clientMuxWriteCompleteAt >= clientMuxWriteAt) {
+          clientMuxWriteQueueNanos[packetId] = clientMuxWriteCompleteAt - clientMuxWriteAt;
+          if (serverDecodeAt >= clientMuxWriteCompleteAt)
+            clientMuxWriteCompleteToServerNanos[packetId] =
+                serverDecodeAt - clientMuxWriteCompleteAt;
+        }
+      }
+    }
+  }
+
+  private static long[] sortedPositiveNanos(long[] values) {
+    long[] samples = new long[values.length];
+    int count = 0;
+    for (int i = 0; i < samples.length; i++)
+      if (values[i] > 0) samples[count++] = values[i];
+    java.util.Arrays.sort(samples, 0, count);
+    return java.util.Arrays.copyOf(samples, count);
+  }
+
+  private static double percentileMillis(long[] sortedNanos, int length, double percentile) {
+    if (length == 0) return 0.0;
+    int index = Math.min(length - 1, (int) Math.ceil(length * percentile) - 1);
+    return sortedNanos[index] / 1_000_000.0;
+  }
+
+  private static void paceUntil(long deadlineNanos) {
+    for (;;) {
+      long remaining = deadlineNanos - System.nanoTime();
+      if (remaining <= 0) return;
+      if (remaining > 1_000_000L)
+        java.util.concurrent.locks.LockSupport.parkNanos(remaining - 500_000L);
+      else Thread.onSpinWait();
+    }
+  }
+
+  private static long metricValue(String metrics, String name) {
+    for (String line : metrics.split("\\r?\\n"))
+      if (line.startsWith(name + " ")) return Long.parseLong(line.substring(name.length() + 1));
+    throw new AssertionError("Metric missing: " + name);
   }
 
   private static int findHeaderEnd(byte[] response) {
@@ -527,6 +1159,10 @@ public final class FeatureSmoke {
         };
     SSLContext context = SSLContext.getInstance("TLS");
     context.init(null, trustAll, new java.security.SecureRandom());
+    for (int attempt = 0; attempt < 4; attempt++) {
+      httpBodyRoundTrip(port, false, context.getSocketFactory());
+      httpBodyRoundTrip(port, true, context.getSocketFactory());
+    }
     try (SSLSocket socket =
         (SSLSocket) context.getSocketFactory().createSocket("127.0.0.1", port)) {
       socket.setSoTimeout(5000);
