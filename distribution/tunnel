@@ -1,0 +1,16 @@
+#!/bin/sh
+set -eu
+APP_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+if [ -x "$APP_DIR/runtime/bin/java" ]; then
+  JAVA="$APP_DIR/runtime/bin/java"
+elif [ -n "${JAVA_HOME:-}" ] && [ -x "$JAVA_HOME/bin/java" ]; then
+  JAVA="$JAVA_HOME/bin/java"
+elif command -v java >/dev/null 2>&1; then
+  JAVA=java
+else
+  echo "Java 11+ is required. Download the runtime bundle or install Java." >&2
+  exit 1
+fi
+JAVA_OPTS=${JAVA_OPTS:--Xms16m -Xmx128m -XX:MaxDirectMemorySize=64m}
+# JAVA_OPTS intentionally splits into JVM arguments; it is never evaluated as shell code.
+exec "$JAVA" $JAVA_OPTS -jar "$APP_DIR/tunnel.jar" "$@"

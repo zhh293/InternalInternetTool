@@ -3,3 +3,11 @@ target/
 !*.properties.example
 ladder.pem
 zhh1.pem
+*.pem
+benchmarks/
+diagnostics/
+state/
+*.key
+__pycache__/
+*.pyc
+!src/main/version/tunnel-version.properties
