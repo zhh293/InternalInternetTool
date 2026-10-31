@@ -1,6 +1,7 @@
 name: Release packages
 on:
   push:
+    branches: [main]
     tags: ['v*']
   workflow_dispatch:
 
@@ -9,6 +10,7 @@ permissions:
 
 jobs:
   build:
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
