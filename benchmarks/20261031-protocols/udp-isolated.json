@@ -1,0 +1,46 @@
+[
+  {
+    "large_size": 8192,
+    "stage": "before",
+    "bytes": 64,
+    "received_bytes": 64,
+    "ok": true,
+    "ms": 47.65719999704743
+  },
+  {
+    "large_size": 8192,
+    "stage": "large",
+    "bytes": 8192,
+    "ok": false,
+    "error": "TimeoutError: timed out"
+  },
+  {
+    "large_size": 8192,
+    "stage": "after",
+    "bytes": 64,
+    "ok": false,
+    "error": "TimeoutError: timed out"
+  },
+  {
+    "large_size": 65507,
+    "stage": "before",
+    "bytes": 64,
+    "received_bytes": 64,
+    "ok": true,
+    "ms": 51.00920000040787
+  },
+  {
+    "large_size": 65507,
+    "stage": "large",
+    "bytes": 65507,
+    "ok": false,
+    "error": "TimeoutError: timed out"
+  },
+  {
+    "large_size": 65507,
+    "stage": "after",
+    "bytes": 64,
+    "ok": false,
+    "error": "TimeoutError: timed out"
+  }
+]

@@ -1,0 +1,13 @@
+{
+  "formal_groups": 237,
+  "formal_operations": 1149,
+  "formal_failed_operations": 78,
+  "common_groups": 171,
+  "common_operations": 819,
+  "configuration_retest_operations": 135,
+  "ws_retest_operations": 15,
+  "fixture_operations": 91,
+  "websocket_phase_sessions": 18,
+  "sampled_oom_kills": 0,
+  "validation": "passed"
+}

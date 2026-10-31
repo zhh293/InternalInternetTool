@@ -1,0 +1,2 @@
+# Preserve evidence bytes, including original UTF-16 console logs and SHA-256 inputs.
+benchmarks/** -text -whitespace

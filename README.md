@@ -77,3 +77,7 @@ TCP/UDP 数据面使用引用计数 `ByteBuf`、保留切片和 `CompositeByteBu
 TCP 连接默认启用 `tcpNoDelay=true`，避免 Nagle 算法把小块转发数据等到后续报文；如需比较延迟与吞吐，可在客户端和服务端分别设为 `false` 后压测。
 
 当前 Netty NIO UDP 发送实现会忽略空数据报；mux 帧层保留空载荷，但不代表已端到端支持空 UDP 报文。新增验证覆盖 65,507 字节 UDP 报文、同来源混合长度报文，以及 HTTP/HTTPS 的 96 KiB 完整和分段请求体。
+
+## 文档与公网评测依据
+
+完整资料见[文档索引](docs/README.md)。[评测归档](benchmarks/README.md)保留两轮公网测试的报告、逐请求JSON、资源采样、执行日志、复现脚本与被测JAR，并提供SHA-256清单。后续[多协议测试](benchmarks/20261031-protocols/多协议测试报告.md)发现TCP半关闭、UDP空报文等边界，应与首轮HTTP性能结论一起阅读。

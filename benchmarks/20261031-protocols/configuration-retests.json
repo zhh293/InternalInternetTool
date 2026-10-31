@@ -1,0 +1,1271 @@
+[
+  {
+    "tool": "frp",
+    "case": "UDP-0B",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 0.937244799999462,
+    "p50_ms": 137.4281999997038,
+    "max_ms": 140.80860000103712,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 135.68579999991925,
+        "meta": {
+          "verified_bytes": 0
+        }
+      },
+      {
+        "ok": true,
+        "ms": 138.44439999957103,
+        "meta": {
+          "verified_bytes": 0
+        }
+      },
+      {
+        "ok": true,
+        "ms": 140.80860000103712,
+        "meta": {
+          "verified_bytes": 0
+        }
+      },
+      {
+        "ok": true,
+        "ms": 132.61720000082278,
+        "meta": {
+          "verified_bytes": 0
+        }
+      },
+      {
+        "ok": true,
+        "ms": 137.4281999997038,
+        "meta": {
+          "verified_bytes": 0
+        }
+      }
+    ]
+  },
+  {
+    "tool": "frp",
+    "case": "UDP-64B",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 0.9280023999999685,
+    "p50_ms": 125.76130000161356,
+    "max_ms": 165.039200001047,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 125.76130000161356,
+        "meta": {
+          "verified_bytes": 64
+        }
+      },
+      {
+        "ok": true,
+        "ms": 149.20429999983753,
+        "meta": {
+          "verified_bytes": 64
+        }
+      },
+      {
+        "ok": true,
+        "ms": 116.79569999978412,
+        "meta": {
+          "verified_bytes": 64
+        }
+      },
+      {
+        "ok": true,
+        "ms": 165.039200001047,
+        "meta": {
+          "verified_bytes": 64
+        }
+      },
+      {
+        "ok": true,
+        "ms": 119.10580000039772,
+        "meta": {
+          "verified_bytes": 64
+        }
+      }
+    ]
+  },
+  {
+    "tool": "frp",
+    "case": "UDP-1200B",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 0.6292179000010947,
+    "p50_ms": 72.13169999886304,
+    "max_ms": 90.03269999811891,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 90.03269999811891,
+        "meta": {
+          "verified_bytes": 1200
+        }
+      },
+      {
+        "ok": true,
+        "ms": 72.24459999997634,
+        "meta": {
+          "verified_bytes": 1200
+        }
+      },
+      {
+        "ok": true,
+        "ms": 71.52510000014445,
+        "meta": {
+          "verified_bytes": 1200
+        }
+      },
+      {
+        "ok": true,
+        "ms": 72.13169999886304,
+        "meta": {
+          "verified_bytes": 1200
+        }
+      },
+      {
+        "ok": true,
+        "ms": 71.17769999968004,
+        "meta": {
+          "verified_bytes": 1200
+        }
+      }
+    ]
+  },
+  {
+    "tool": "frp",
+    "case": "UDP-8192B",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 5,
+    "seconds": 10.278331399997114,
+    "p50_ms": null,
+    "max_ms": null,
+    "samples": [
+      {
+        "ok": false,
+        "ms": 2003.4464999989723,
+        "error": "TimeoutError: timed out"
+      },
+      {
+        "ok": false,
+        "ms": 2002.9455999974743,
+        "error": "TimeoutError: timed out"
+      },
+      {
+        "ok": false,
+        "ms": 2009.3783000011172,
+        "error": "TimeoutError: timed out"
+      },
+      {
+        "ok": false,
+        "ms": 2003.3602000003157,
+        "error": "TimeoutError: timed out"
+      },
+      {
+        "ok": false,
+        "ms": 2006.6312000017206,
+        "error": "TimeoutError: timed out"
+      }
+    ]
+  },
+  {
+    "tool": "frp",
+    "case": "UDP-65507B",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 5,
+    "seconds": 10.272516600001836,
+    "p50_ms": null,
+    "max_ms": null,
+    "samples": [
+      {
+        "ok": false,
+        "ms": 1998.9889999997104,
+        "error": "TimeoutError: timed out"
+      },
+      {
+        "ok": false,
+        "ms": 2002.3725999999442,
+        "error": "TimeoutError: timed out"
+      },
+      {
+        "ok": false,
+        "ms": 2002.659500001755,
+        "error": "TimeoutError: timed out"
+      },
+      {
+        "ok": false,
+        "ms": 2006.60020000214,
+        "error": "TimeoutError: timed out"
+      },
+      {
+        "ok": false,
+        "ms": 2008.8473999967391,
+        "error": "TimeoutError: timed out"
+      }
+    ]
+  },
+  {
+    "tool": "frp",
+    "case": "UDP-0B",
+    "repeat": 2,
+    "attempts": 5,
+    "errors": 5,
+    "seconds": 10.272300099997665,
+    "p50_ms": null,
+    "max_ms": null,
+    "samples": [
+      {
+        "ok": false,
+        "ms": 1998.1447999998636,
+        "error": "TimeoutError: timed out"
+      },
+      {
+        "ok": false,
+        "ms": 2007.3282999983348,
+        "error": "TimeoutError: timed out"
+      },
+      {
+        "ok": false,
+        "ms": 2001.990200002183,
+        "error": "TimeoutError: timed out"
+      },
+      {
+        "ok": false,
+        "ms": 2007.6570999990508,
+        "error": "TimeoutError: timed out"
+      },
+      {
+        "ok": false,
+        "ms": 2003.554399998393,
+        "error": "TimeoutError: timed out"
+      }
+    ]
+  },
+  {
+    "tool": "frp",
+    "case": "UDP-64B",
+    "repeat": 2,
+    "attempts": 5,
+    "errors": 5,
+    "seconds": 10.280803900001047,
+    "p50_ms": null,
+    "max_ms": null,
+    "samples": [
+      {
+        "ok": false,
+        "ms": 1998.0659000029846,
+        "error": "TimeoutError: timed out"
+      },
+      {
+        "ok": false,
+        "ms": 2011.1491000025126,
+        "error": "TimeoutError: timed out"
+      },
+      {
+        "ok": false,
+        "ms": 2006.5540999967197,
+        "error": "TimeoutError: timed out"
+      },
+      {
+        "ok": false,
+        "ms": 2001.4561000025424,
+        "error": "TimeoutError: timed out"
+      },
+      {
+        "ok": false,
+        "ms": 2011.256300000241,
+        "error": "TimeoutError: timed out"
+      }
+    ]
+  },
+  {
+    "tool": "frp",
+    "case": "UDP-1200B",
+    "repeat": 2,
+    "attempts": 5,
+    "errors": 5,
+    "seconds": 10.289732500001264,
+    "p50_ms": null,
+    "max_ms": null,
+    "samples": [
+      {
+        "ok": false,
+        "ms": 2009.8112000014225,
+        "error": "TimeoutError: timed out"
+      },
+      {
+        "ok": false,
+        "ms": 2003.3442999992985,
+        "error": "TimeoutError: timed out"
+      },
+      {
+        "ok": false,
+        "ms": 2010.579300000245,
+        "error": "TimeoutError: timed out"
+      },
+      {
+        "ok": false,
+        "ms": 2010.9431999990193,
+        "error": "TimeoutError: timed out"
+      },
+      {
+        "ok": false,
+        "ms": 2003.5117000006721,
+        "error": "TimeoutError: timed out"
+      }
+    ]
+  },
+  {
+    "tool": "frp",
+    "case": "UDP-8192B",
+    "repeat": 2,
+    "attempts": 5,
+    "errors": 5,
+    "seconds": 10.283801399997174,
+    "p50_ms": null,
+    "max_ms": null,
+    "samples": [
+      {
+        "ok": false,
+        "ms": 2003.3460000013292,
+        "error": "TimeoutError: timed out"
+      },
+      {
+        "ok": false,
+        "ms": 2007.4984999992012,
+        "error": "TimeoutError: timed out"
+      },
+      {
+        "ok": false,
+        "ms": 2004.6220000003814,
+        "error": "TimeoutError: timed out"
+      },
+      {
+        "ok": false,
+        "ms": 2009.7198000003118,
+        "error": "TimeoutError: timed out"
+      },
+      {
+        "ok": false,
+        "ms": 2006.920200001332,
+        "error": "TimeoutError: timed out"
+      }
+    ]
+  },
+  {
+    "tool": "frp",
+    "case": "UDP-65507B",
+    "repeat": 2,
+    "attempts": 5,
+    "errors": 5,
+    "seconds": 10.28780850000112,
+    "p50_ms": null,
+    "max_ms": null,
+    "samples": [
+      {
+        "ok": false,
+        "ms": 2004.619700001058,
+        "error": "TimeoutError: timed out"
+      },
+      {
+        "ok": false,
+        "ms": 2008.533799998986,
+        "error": "TimeoutError: timed out"
+      },
+      {
+        "ok": false,
+        "ms": 2005.2586999991036,
+        "error": "TimeoutError: timed out"
+      },
+      {
+        "ok": false,
+        "ms": 2010.8077000004414,
+        "error": "TimeoutError: timed out"
+      },
+      {
+        "ok": false,
+        "ms": 2005.548799999815,
+        "error": "TimeoutError: timed out"
+      }
+    ]
+  },
+  {
+    "tool": "frp",
+    "case": "UDP-0B",
+    "repeat": 3,
+    "attempts": 5,
+    "errors": 5,
+    "seconds": 10.280226000002585,
+    "p50_ms": null,
+    "max_ms": null,
+    "samples": [
+      {
+        "ok": false,
+        "ms": 2011.365800000931,
+        "error": "TimeoutError: timed out"
+      },
+      {
+        "ok": false,
+        "ms": 2002.5155000002997,
+        "error": "TimeoutError: timed out"
+      },
+      {
+        "ok": false,
+        "ms": 2004.0883000001486,
+        "error": "TimeoutError: timed out"
+      },
+      {
+        "ok": false,
+        "ms": 2006.907400002092,
+        "error": "TimeoutError: timed out"
+      },
+      {
+        "ok": false,
+        "ms": 2002.4244999985967,
+        "error": "TimeoutError: timed out"
+      }
+    ]
+  },
+  {
+    "tool": "frp",
+    "case": "UDP-64B",
+    "repeat": 3,
+    "attempts": 5,
+    "errors": 5,
+    "seconds": 10.26784889999908,
+    "p50_ms": null,
+    "max_ms": null,
+    "samples": [
+      {
+        "ok": false,
+        "ms": 1998.076800002309,
+        "error": "TimeoutError: timed out"
+      },
+      {
+        "ok": false,
+        "ms": 2000.9860999998637,
+        "error": "TimeoutError: timed out"
+      },
+      {
+        "ok": false,
+        "ms": 2010.733999999502,
+        "error": "TimeoutError: timed out"
+      },
+      {
+        "ok": false,
+        "ms": 2002.664100000402,
+        "error": "TimeoutError: timed out"
+      },
+      {
+        "ok": false,
+        "ms": 2003.6521000001812,
+        "error": "TimeoutError: timed out"
+      }
+    ]
+  },
+  {
+    "tool": "frp",
+    "case": "UDP-1200B",
+    "repeat": 3,
+    "attempts": 5,
+    "errors": 5,
+    "seconds": 10.282167099998333,
+    "p50_ms": null,
+    "max_ms": null,
+    "samples": [
+      {
+        "ok": false,
+        "ms": 2007.1394999977201,
+        "error": "TimeoutError: timed out"
+      },
+      {
+        "ok": false,
+        "ms": 2003.2083999976749,
+        "error": "TimeoutError: timed out"
+      },
+      {
+        "ok": false,
+        "ms": 2001.6978000021481,
+        "error": "TimeoutError: timed out"
+      },
+      {
+        "ok": false,
+        "ms": 2006.0628999999608,
+        "error": "TimeoutError: timed out"
+      },
+      {
+        "ok": false,
+        "ms": 2011.128699999972,
+        "error": "TimeoutError: timed out"
+      }
+    ]
+  },
+  {
+    "tool": "frp",
+    "case": "UDP-8192B",
+    "repeat": 3,
+    "attempts": 5,
+    "errors": 5,
+    "seconds": 10.28909560000102,
+    "p50_ms": null,
+    "max_ms": null,
+    "samples": [
+      {
+        "ok": false,
+        "ms": 2011.196799998288,
+        "error": "TimeoutError: timed out"
+      },
+      {
+        "ok": false,
+        "ms": 2010.5250000015076,
+        "error": "TimeoutError: timed out"
+      },
+      {
+        "ok": false,
+        "ms": 2005.0761999991664,
+        "error": "TimeoutError: timed out"
+      },
+      {
+        "ok": false,
+        "ms": 2000.3673999999592,
+        "error": "TimeoutError: timed out"
+      },
+      {
+        "ok": false,
+        "ms": 2009.3758999973943,
+        "error": "TimeoutError: timed out"
+      }
+    ]
+  },
+  {
+    "tool": "frp",
+    "case": "UDP-65507B",
+    "repeat": 3,
+    "attempts": 5,
+    "errors": 5,
+    "seconds": 10.28319559999727,
+    "p50_ms": null,
+    "max_ms": null,
+    "samples": [
+      {
+        "ok": false,
+        "ms": 2005.9479999981704,
+        "error": "TimeoutError: timed out"
+      },
+      {
+        "ok": false,
+        "ms": 2008.8751999974193,
+        "error": "TimeoutError: timed out"
+      },
+      {
+        "ok": false,
+        "ms": 2006.2862999984645,
+        "error": "TimeoutError: timed out"
+      },
+      {
+        "ok": false,
+        "ms": 2003.9942000003066,
+        "error": "TimeoutError: timed out"
+      },
+      {
+        "ok": false,
+        "ms": 2006.085200002417,
+        "error": "TimeoutError: timed out"
+      }
+    ]
+  },
+  {
+    "tool": "java",
+    "case": "native-http-route-ready",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 1.0868797000002814,
+    "p50_ms": 176.3526999966416,
+    "max_ms": 183.50459999783197,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 148.23660000183736,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": null
+        }
+      },
+      {
+        "ok": true,
+        "ms": 176.3526999966416,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": null
+        }
+      },
+      {
+        "ok": true,
+        "ms": 183.50459999783197,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": null
+        }
+      },
+      {
+        "ok": true,
+        "ms": 180.9752999979537,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": null
+        }
+      },
+      {
+        "ok": true,
+        "ms": 145.75210000111838,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": null
+        }
+      }
+    ]
+  },
+  {
+    "tool": "java",
+    "case": "native-http-route-ready",
+    "repeat": 2,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 1.0996616000011272,
+    "p50_ms": 184.2106000003696,
+    "max_ms": 205.18079999965266,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 184.2106000003696,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": null
+        }
+      },
+      {
+        "ok": true,
+        "ms": 136.89249999879394,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": null
+        }
+      },
+      {
+        "ok": true,
+        "ms": 201.8105999995896,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": null
+        }
+      },
+      {
+        "ok": true,
+        "ms": 205.18079999965266,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": null
+        }
+      },
+      {
+        "ok": true,
+        "ms": 119.14859999887994,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": null
+        }
+      }
+    ]
+  },
+  {
+    "tool": "java",
+    "case": "native-http-route-ready",
+    "repeat": 3,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 1.1135517000002437,
+    "p50_ms": 165.68980000010924,
+    "max_ms": 215.9670000000915,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 215.9670000000915,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": null
+        }
+      },
+      {
+        "ok": true,
+        "ms": 152.25529999952414,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": null
+        }
+      },
+      {
+        "ok": true,
+        "ms": 165.68980000010924,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": null
+        }
+      },
+      {
+        "ok": true,
+        "ms": 179.79759999798262,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": null
+        }
+      },
+      {
+        "ok": true,
+        "ms": 148.0413999997836,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": null
+        }
+      }
+    ]
+  },
+  {
+    "tool": "java",
+    "case": "native-https-route-ready",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 1.3813346999995701,
+    "p50_ms": 198.9955999997619,
+    "max_ms": 298.6850000015693,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 247.9708999999275,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": "TLSv1.3"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 195.2439000015147,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": "TLSv1.3"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 298.6850000015693,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": "TLSv1.3"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 198.9955999997619,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": "TLSv1.3"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 188.2867999993323,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": "TLSv1.3"
+        }
+      }
+    ]
+  },
+  {
+    "tool": "java",
+    "case": "native-https-route-ready",
+    "repeat": 2,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 1.4163043000007747,
+    "p50_ms": 238.41629999878933,
+    "max_ms": 271.9114999999874,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 208.5296000004746,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": "TLSv1.3"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 271.9114999999874,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": "TLSv1.3"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 247.75099999897066,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": "TLSv1.3"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 198.12330000058864,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": "TLSv1.3"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 238.41629999878933,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": "TLSv1.3"
+        }
+      }
+    ]
+  },
+  {
+    "tool": "java",
+    "case": "native-https-route-ready",
+    "repeat": 3,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 1.4078373999982432,
+    "p50_ms": 217.78370000174618,
+    "max_ms": 279.04250000210595,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 213.15730000060285,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": "TLSv1.3"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 217.78370000174618,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": "TLSv1.3"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 194.55649999872549,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": "TLSv1.3"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 279.04250000210595,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": "TLSv1.3"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 251.46780000068247,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": "TLSv1.3"
+        }
+      }
+    ]
+  },
+  {
+    "tool": "frp",
+    "case": "native-http-route-ready",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 0.8901222000022244,
+    "p50_ms": 122.27580000035232,
+    "max_ms": 179.20430000231136,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 179.20430000231136,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": null
+        }
+      },
+      {
+        "ok": true,
+        "ms": 128.7374000021373,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": null
+        }
+      },
+      {
+        "ok": true,
+        "ms": 122.27580000035232,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": null
+        }
+      },
+      {
+        "ok": true,
+        "ms": 117.16359999991255,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": null
+        }
+      },
+      {
+        "ok": true,
+        "ms": 90.45659999901545,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": null
+        }
+      }
+    ]
+  },
+  {
+    "tool": "frp",
+    "case": "native-http-route-ready",
+    "repeat": 2,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 0.8298453999996127,
+    "p50_ms": 115.9049000016239,
+    "max_ms": 143.51929999975255,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 88.10090000042692,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": null
+        }
+      },
+      {
+        "ok": true,
+        "ms": 115.9049000016239,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": null
+        }
+      },
+      {
+        "ok": true,
+        "ms": 105.98510000272654,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": null
+        }
+      },
+      {
+        "ok": true,
+        "ms": 143.51929999975255,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": null
+        }
+      },
+      {
+        "ok": true,
+        "ms": 124.46619999900577,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": null
+        }
+      }
+    ]
+  },
+  {
+    "tool": "frp",
+    "case": "native-http-route-ready",
+    "repeat": 3,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 0.7430889999995998,
+    "p50_ms": 93.11920000254759,
+    "max_ms": 134.20989999940502,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 87.02400000038324,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": null
+        }
+      },
+      {
+        "ok": true,
+        "ms": 94.46679999746266,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": null
+        }
+      },
+      {
+        "ok": true,
+        "ms": 83.0175999981293,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": null
+        }
+      },
+      {
+        "ok": true,
+        "ms": 134.20989999940502,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": null
+        }
+      },
+      {
+        "ok": true,
+        "ms": 93.11920000254759,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": null
+        }
+      }
+    ]
+  },
+  {
+    "tool": "frp",
+    "case": "native-https-route-ready",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 1.3992545000000973,
+    "p50_ms": 238.4920999975293,
+    "max_ms": 249.03379999886965,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 249.03379999886965,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": "TLSv1.3"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 238.4920999975293,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": "TLSv1.3"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 197.62960000298335,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": "TLSv1.3"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 220.12499999982538,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": "TLSv1.3"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 241.48840000270866,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": "TLSv1.3"
+        }
+      }
+    ]
+  },
+  {
+    "tool": "frp",
+    "case": "native-https-route-ready",
+    "repeat": 2,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 1.2928121999975701,
+    "p50_ms": 203.78409999830183,
+    "max_ms": 237.9949000023771,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 237.9949000023771,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": "TLSv1.3"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 192.26460000209045,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": "TLSv1.3"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 192.7352000020619,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": "TLSv1.3"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 213.65000000150758,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": "TLSv1.3"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 203.78409999830183,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": "TLSv1.3"
+        }
+      }
+    ]
+  },
+  {
+    "tool": "frp",
+    "case": "native-https-route-ready",
+    "repeat": 3,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 1.3724655000005441,
+    "p50_ms": 209.27619999929448,
+    "max_ms": 261.8470999987039,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 261.8470999987039,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": "TLSv1.3"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 208.8739999999234,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": "TLSv1.3"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 194.76489999942714,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": "TLSv1.3"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 245.2486999973189,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": "TLSv1.3"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 209.27619999929448,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": "TLSv1.3"
+        }
+      }
+    ]
+  }
+]

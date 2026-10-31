@@ -1,0 +1,50 @@
+[
+  {
+    "tool": "java",
+    "mode": "http",
+    "time": 1793437362.7454503,
+    "probes": [
+      {
+        "ok": false,
+        "error": "(404, b'404 Unknown host route\\n')"
+      },
+      {
+        "ok": true
+      }
+    ]
+  },
+  {
+    "tool": "java",
+    "mode": "https",
+    "time": 1793437372.7950163,
+    "probes": [
+      {
+        "ok": false,
+        "error": "(404, b'404 Unknown host route\\n')"
+      },
+      {
+        "ok": true
+      }
+    ]
+  },
+  {
+    "tool": "frp",
+    "mode": "http",
+    "time": 1793437382.8979356,
+    "probes": [
+      {
+        "ok": true
+      }
+    ]
+  },
+  {
+    "tool": "frp",
+    "mode": "https",
+    "time": 1793437391.3615844,
+    "probes": [
+      {
+        "ok": true
+      }
+    ]
+  }
+]

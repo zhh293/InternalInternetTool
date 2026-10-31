@@ -1,0 +1,11 @@
+{
+  "remote": "Linux ecs-9402 5.15.0-186-generic #196-Ubuntu SMP Sat Jun 20 16:09:34 UTC 2026 x86_64 x86_64 x86_64 GNU/Linux\nopenjdk version \"17.0.20.1\" 2026-08-18\nOpenJDK Runtime Environment (build 17.0.20.1+1-1-22.04-Ubuntu)\nOpenJDK 64-Bit Server VM (build 17.0.20.1+1-1-22.04-Ubuntu, mixed mode, sharing)\n               total        used        free      shared  buff/cache   available\nMem:             956         410         166           2         379         379\nSwap:              0           0           0\n2026-10-31T16:57:06+08:00\n",
+  "python": "3.12.7 | packaged by Anaconda, Inc. | (main, Oct  4 2024, 13:17:27) [MSC v.1929 64 bit (AMD64)]",
+  "versions": {
+    "grpc": "1.85.1",
+    "paramiko": "5.1.0"
+  },
+  "jar_sha256": "f68d57f872ddf0d8816142a63de10d2e6587b44835ae10fbc5f0aac5221cfe1f",
+  "topology": "Windows probe -> public:9090 -> relay -> SSH-underlay -> Windows origin",
+  "limits": "service230MiB, CPU60%, Runtime900s, memory guard150MiB; each probe8s (UDP2s)"
+}

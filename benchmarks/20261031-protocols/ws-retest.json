@@ -1,0 +1,149 @@
+[
+  {
+    "tool": "frp",
+    "case": "WebSocket-64KiB-retest",
+    "repeat": 1,
+    "attempts": 15,
+    "errors": 0,
+    "seconds": 8.968809400001192,
+    "p50_ms": 556.3255999986723,
+    "max_ms": 634.7005000025092,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 634.7005000025092,
+        "meta": {
+          "verified_bytes": 65536,
+          "ping_pong": true,
+          "binary": true
+        }
+      },
+      {
+        "ok": true,
+        "ms": 614.864299997862,
+        "meta": {
+          "verified_bytes": 65536,
+          "ping_pong": true,
+          "binary": true
+        }
+      },
+      {
+        "ok": true,
+        "ms": 602.0867000006547,
+        "meta": {
+          "verified_bytes": 65536,
+          "ping_pong": true,
+          "binary": true
+        }
+      },
+      {
+        "ok": true,
+        "ms": 603.9380000001984,
+        "meta": {
+          "verified_bytes": 65536,
+          "ping_pong": true,
+          "binary": true
+        }
+      },
+      {
+        "ok": true,
+        "ms": 611.1378999994486,
+        "meta": {
+          "verified_bytes": 65536,
+          "ping_pong": true,
+          "binary": true
+        }
+      },
+      {
+        "ok": true,
+        "ms": 508.3755999985442,
+        "meta": {
+          "verified_bytes": 65536,
+          "ping_pong": true,
+          "binary": true
+        }
+      },
+      {
+        "ok": true,
+        "ms": 556.3255999986723,
+        "meta": {
+          "verified_bytes": 65536,
+          "ping_pong": true,
+          "binary": true
+        }
+      },
+      {
+        "ok": true,
+        "ms": 508.1702999996196,
+        "meta": {
+          "verified_bytes": 65536,
+          "ping_pong": true,
+          "binary": true
+        }
+      },
+      {
+        "ok": true,
+        "ms": 505.11660000120173,
+        "meta": {
+          "verified_bytes": 65536,
+          "ping_pong": true,
+          "binary": true
+        }
+      },
+      {
+        "ok": true,
+        "ms": 565.9973000001628,
+        "meta": {
+          "verified_bytes": 65536,
+          "ping_pong": true,
+          "binary": true
+        }
+      },
+      {
+        "ok": true,
+        "ms": 494.54809999951976,
+        "meta": {
+          "verified_bytes": 65536,
+          "ping_pong": true,
+          "binary": true
+        }
+      },
+      {
+        "ok": true,
+        "ms": 561.4188999970793,
+        "meta": {
+          "verified_bytes": 65536,
+          "ping_pong": true,
+          "binary": true
+        }
+      },
+      {
+        "ok": true,
+        "ms": 461.7779000000155,
+        "meta": {
+          "verified_bytes": 65536,
+          "ping_pong": true,
+          "binary": true
+        }
+      },
+      {
+        "ok": true,
+        "ms": 543.4687999986636,
+        "meta": {
+          "verified_bytes": 65536,
+          "ping_pong": true,
+          "binary": true
+        }
+      },
+      {
+        "ok": true,
+        "ms": 439.53460000193445,
+        "meta": {
+          "verified_bytes": 65536,
+          "ping_pong": true,
+          "binary": true
+        }
+      }
+    ]
+  }
+]

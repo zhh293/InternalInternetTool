@@ -1,0 +1,287 @@
+[
+  {
+    "time": 1793434874.6334977,
+    "label": "java-ready",
+    "raw": "2026-10-31T16:21:11+08:00\n 16:21:11 up 1 day,  5:33,  0 users,  load average: 0.00, 0.00, 0.00\n               total        used        free      shared  buff/cache   available\nMem:             956         454         142           2         359         336\nSwap:              0           0           0\n71835648\nCPUUsageNSec=1736419000\nActiveState=active\n 347414 90620 28.8 /usr/bin/java -Xms16m -Xmx64m -XX:MaxDirectMemorySize=24m -XX:ActiveProcessorCount=1 -XX:+UseSerialGC -Dio.netty.eventLoopThreads=1 -cp tunnel.jar dev.tunnel.Server server.properties\n"
+  },
+  {
+    "time": 1793434880.0081508,
+    "label": "java-1-64-1",
+    "raw": "2026-10-31T16:21:16+08:00\n 16:21:16 up 1 day,  5:33,  0 users,  load average: 0.00, 0.00, 0.00\n               total        used        free      shared  buff/cache   available\nMem:             956         454         142           2         360         336\nSwap:              0           0           0\n72667136\nCPUUsageNSec=1896585000\nActiveState=active\n 347414 91384 15.7 /usr/bin/java -Xms16m -Xmx64m -XX:MaxDirectMemorySize=24m -XX:ActiveProcessorCount=1 -XX:+UseSerialGC -Dio.netty.eventLoopThreads=1 -cp tunnel.jar dev.tunnel.Server server.properties\n"
+  },
+  {
+    "time": 1793434883.0032725,
+    "label": "java-1-64-1",
+    "raw": "2026-10-31T16:21:19+08:00\n 16:21:19 up 1 day,  5:33,  0 users,  load average: 0.00, 0.00, 0.00\n               total        used        free      shared  buff/cache   available\nMem:             956         455         141           2         360         335\nSwap:              0           0           0\n73216000\nCPUUsageNSec=1985149000\nActiveState=active\n 347414 91828 13.2 /usr/bin/java -Xms16m -Xmx64m -XX:MaxDirectMemorySize=24m -XX:ActiveProcessorCount=1 -XX:+UseSerialGC -Dio.netty.eventLoopThreads=1 -cp tunnel.jar dev.tunnel.Server server.properties\n"
+  },
+  {
+    "time": 1793434887.1250055,
+    "label": "java-1-64-4",
+    "raw": "2026-10-31T16:21:23+08:00\n 16:21:23 up 1 day,  5:33,  0 users,  load average: 0.00, 0.00, 0.00\n               total        used        free      shared  buff/cache   available\nMem:             956         484         112           2         360         306\nSwap:              0           0           0\n75603968\nCPUUsageNSec=2135582000\nActiveState=active\n 347414 94268 11.2 /usr/bin/java -Xms16m -Xmx64m -XX:MaxDirectMemorySize=24m -XX:ActiveProcessorCount=1 -XX:+UseSerialGC -Dio.netty.eventLoopThreads=1 -cp tunnel.jar dev.tunnel.Server server.properties\n"
+  },
+  {
+    "time": 1793434890.4846776,
+    "label": "java-1-65536-1",
+    "raw": "2026-10-31T16:21:26+08:00\n 16:21:26 up 1 day,  5:33,  0 users,  load average: 0.00, 0.00, 0.00\n               total        used        free      shared  buff/cache   available\nMem:             956         483         112           2         361         307\nSwap:              0           0           0\n77426688\nCPUUsageNSec=2222241000\nActiveState=active\n 347414 95832 10.0 /usr/bin/java -Xms16m -Xmx64m -XX:MaxDirectMemorySize=24m -XX:ActiveProcessorCount=1 -XX:+UseSerialGC -Dio.netty.eventLoopThreads=1 -cp tunnel.jar dev.tunnel.Server server.properties\n"
+  },
+  {
+    "time": 1793434894.594929,
+    "label": "java-1-65536-4",
+    "raw": "2026-10-31T16:21:31+08:00\n 16:21:31 up 1 day,  5:33,  0 users,  load average: 0.00, 0.00, 0.00\n               total        used        free      shared  buff/cache   available\nMem:             956         483         112           2         361         307\nSwap:              0           0           0\n78041088\nCPUUsageNSec=2379137000\nActiveState=active\n 347414 96432  9.1 /usr/bin/java -Xms16m -Xmx64m -XX:MaxDirectMemorySize=24m -XX:ActiveProcessorCount=1 -XX:+UseSerialGC -Dio.netty.eventLoopThreads=1 -cp tunnel.jar dev.tunnel.Server server.properties\n"
+  },
+  {
+    "time": 1793434898.488706,
+    "label": "java-1-1048576-1",
+    "raw": "2026-10-31T16:21:34+08:00\n 16:21:34 up 1 day,  5:33,  0 users,  load average: 0.00, 0.00, 0.00\n               total        used        free      shared  buff/cache   available\nMem:             956         483         111           2         361         307\nSwap:              0           0           0\n78692352\nCPUUsageNSec=2541564000\nActiveState=active\n 347414 97028  8.4 /usr/bin/java -Xms16m -Xmx64m -XX:MaxDirectMemorySize=24m -XX:ActiveProcessorCount=1 -XX:+UseSerialGC -Dio.netty.eventLoopThreads=1 -cp tunnel.jar dev.tunnel.Server server.properties\n"
+  },
+  {
+    "time": 1793434902.5985303,
+    "label": "java-2-64-1",
+    "raw": "2026-10-31T16:21:39+08:00\n 16:21:39 up 1 day,  5:33,  0 users,  load average: 0.00, 0.00, 0.00\n               total        used        free      shared  buff/cache   available\nMem:             956         483         111           2         362         307\nSwap:              0           0           0\n79368192\nCPUUsageNSec=2593289000\nActiveState=active\n 347414 97632  7.5 /usr/bin/java -Xms16m -Xmx64m -XX:MaxDirectMemorySize=24m -XX:ActiveProcessorCount=1 -XX:+UseSerialGC -Dio.netty.eventLoopThreads=1 -cp tunnel.jar dev.tunnel.Server server.properties\n"
+  },
+  {
+    "time": 1793434905.5833306,
+    "label": "java-2-64-1",
+    "raw": "2026-10-31T16:21:42+08:00\n 16:21:42 up 1 day,  5:33,  0 users,  load average: 0.00, 0.00, 0.00\n               total        used        free      shared  buff/cache   available\nMem:             956         483         111           2         362         307\nSwap:              0           0           0\n79392768\nCPUUsageNSec=2621441000\nActiveState=active\n 347414 97728  7.0 /usr/bin/java -Xms16m -Xmx64m -XX:MaxDirectMemorySize=24m -XX:ActiveProcessorCount=1 -XX:+UseSerialGC -Dio.netty.eventLoopThreads=1 -cp tunnel.jar dev.tunnel.Server server.properties\n"
+  },
+  {
+    "time": 1793434909.51956,
+    "label": "java-2-64-4",
+    "raw": "2026-10-31T16:21:46+08:00\n 16:21:45 up 1 day,  5:33,  0 users,  load average: 0.00, 0.00, 0.00\n               total        used        free      shared  buff/cache   available\nMem:             956         483         111           2         362         307\nSwap:              0           0           0\n79552512\nCPUUsageNSec=2759379000\nActiveState=active\n 347414 98068  6.7 /usr/bin/java -Xms16m -Xmx64m -XX:MaxDirectMemorySize=24m -XX:ActiveProcessorCount=1 -XX:+UseSerialGC -Dio.netty.eventLoopThreads=1 -cp tunnel.jar dev.tunnel.Server server.properties\n"
+  },
+  {
+    "time": 1793434912.923817,
+    "label": "java-2-65536-1",
+    "raw": "2026-10-31T16:21:49+08:00\n 16:21:49 up 1 day,  5:33,  0 users,  load average: 0.08, 0.02, 0.01\n               total        used        free      shared  buff/cache   available\nMem:             956         483         111           2         362         307\nSwap:              0           0           0\n80162816\nCPUUsageNSec=2801062000\nActiveState=active\n 347414 98656  6.2 /usr/bin/java -Xms16m -Xmx64m -XX:MaxDirectMemorySize=24m -XX:ActiveProcessorCount=1 -XX:+UseSerialGC -Dio.netty.eventLoopThreads=1 -cp tunnel.jar dev.tunnel.Server server.properties\n"
+  },
+  {
+    "time": 1793434917.1741033,
+    "label": "java-2-65536-4",
+    "raw": "2026-10-31T16:21:53+08:00\n 16:21:53 up 1 day,  5:34,  0 users,  load average: 0.07, 0.02, 0.00\n               total        used        free      shared  buff/cache   available\nMem:             956         483         111           2         362         307\nSwap:              0           0           0\n82608128\nCPUUsageNSec=3077545000\nActiveState=active\n 347414 100844 6.2 /usr/bin/java -Xms16m -Xmx64m -XX:MaxDirectMemorySize=24m -XX:ActiveProcessorCount=1 -XX:+UseSerialGC -Dio.netty.eventLoopThreads=1 -cp tunnel.jar dev.tunnel.Server server.properties\n"
+  },
+  {
+    "time": 1793434923.3065236,
+    "label": "java-2-1048576-1",
+    "raw": "2026-10-31T16:21:59+08:00\n 16:21:59 up 1 day,  5:34,  0 users,  load average: 0.07, 0.02, 0.00\n               total        used        free      shared  buff/cache   available\nMem:             956         482         111           2         362         308\nSwap:              0           0           0\n82710528\nCPUUsageNSec=3224583000\nActiveState=active\n 347414 100844 5.8 /usr/bin/java -Xms16m -Xmx64m -XX:MaxDirectMemorySize=24m -XX:ActiveProcessorCount=1 -XX:+UseSerialGC -Dio.netty.eventLoopThreads=1 -cp tunnel.jar dev.tunnel.Server server.properties\n"
+  },
+  {
+    "time": 1793434927.2719035,
+    "label": "java-3-64-1",
+    "raw": "2026-10-31T16:22:03+08:00\n 16:22:03 up 1 day,  5:34,  0 users,  load average: 0.06, 0.02, 0.00\n               total        used        free      shared  buff/cache   available\nMem:             956         482         111           2         363         308\nSwap:              0           0           0\n82759680\nCPUUsageNSec=3272161000\nActiveState=active\n 347414 100912 5.5 /usr/bin/java -Xms16m -Xmx64m -XX:MaxDirectMemorySize=24m -XX:ActiveProcessorCount=1 -XX:+UseSerialGC -Dio.netty.eventLoopThreads=1 -cp tunnel.jar dev.tunnel.Server server.properties\n"
+  },
+  {
+    "time": 1793434930.2500165,
+    "label": "java-3-64-1",
+    "raw": "2026-10-31T16:22:06+08:00\n 16:22:06 up 1 day,  5:34,  0 users,  load average: 0.06, 0.01, 0.00\n               total        used        free      shared  buff/cache   available\nMem:             956         482         111           2         363         308\nSwap:              0           0           0\n82763776\nCPUUsageNSec=3285436000\nActiveState=active\n 347414 100912 5.2 /usr/bin/java -Xms16m -Xmx64m -XX:MaxDirectMemorySize=24m -XX:ActiveProcessorCount=1 -XX:+UseSerialGC -Dio.netty.eventLoopThreads=1 -cp tunnel.jar dev.tunnel.Server server.properties\n"
+  },
+  {
+    "time": 1793434934.180518,
+    "label": "java-3-64-4",
+    "raw": "2026-10-31T16:22:10+08:00\n 16:22:10 up 1 day,  5:34,  0 users,  load average: 0.06, 0.01, 0.00\n               total        used        free      shared  buff/cache   available\nMem:             956         482         111           2         363         308\nSwap:              0           0           0\n82808832\nCPUUsageNSec=3345061000\nActiveState=active\n 347414 101176 5.0 /usr/bin/java -Xms16m -Xmx64m -XX:MaxDirectMemorySize=24m -XX:ActiveProcessorCount=1 -XX:+UseSerialGC -Dio.netty.eventLoopThreads=1 -cp tunnel.jar dev.tunnel.Server server.properties\n"
+  },
+  {
+    "time": 1793434937.5562892,
+    "label": "java-3-65536-1",
+    "raw": "2026-10-31T16:22:14+08:00\n 16:22:14 up 1 day,  5:34,  0 users,  load average: 0.05, 0.01, 0.00\n               total        used        free      shared  buff/cache   available\nMem:             956         482         111           2         363         308\nSwap:              0           0           0\n82837504\nCPUUsageNSec=3374800000\nActiveState=active\n 347414 101176 4.8 /usr/bin/java -Xms16m -Xmx64m -XX:MaxDirectMemorySize=24m -XX:ActiveProcessorCount=1 -XX:+UseSerialGC -Dio.netty.eventLoopThreads=1 -cp tunnel.jar dev.tunnel.Server server.properties\n"
+  },
+  {
+    "time": 1793434941.7097986,
+    "label": "java-3-65536-4",
+    "raw": "2026-10-31T16:22:18+08:00\n 16:22:18 up 1 day,  5:34,  0 users,  load average: 0.05, 0.01, 0.00\n               total        used        free      shared  buff/cache   available\nMem:             956         481         111           2         363         309\nSwap:              0           0           0\n83087360\nCPUUsageNSec=3559102000\nActiveState=active\n 347414 101536 4.8 /usr/bin/java -Xms16m -Xmx64m -XX:MaxDirectMemorySize=24m -XX:ActiveProcessorCount=1 -XX:+UseSerialGC -Dio.netty.eventLoopThreads=1 -cp tunnel.jar dev.tunnel.Server server.properties\n"
+  },
+  {
+    "time": 1793434947.0363998,
+    "label": "java-3-1048576-1",
+    "raw": "2026-10-31T16:22:23+08:00\n 16:22:23 up 1 day,  5:34,  0 users,  load average: 0.04, 0.01, 0.00\n               total        used        free      shared  buff/cache   available\nMem:             956         481         111           2         363         309\nSwap:              0           0           0\n83664896\nCPUUsageNSec=3599612000\nActiveState=active\n 347414 102092 4.5 /usr/bin/java -Xms16m -Xmx64m -XX:MaxDirectMemorySize=24m -XX:ActiveProcessorCount=1 -XX:+UseSerialGC -Dio.netty.eventLoopThreads=1 -cp tunnel.jar dev.tunnel.Server server.properties\n"
+  },
+  {
+    "time": 1793435012.9541957,
+    "label": "frp-ready",
+    "raw": "2026-10-31T16:23:29+08:00\n 16:23:29 up 1 day,  5:35,  0 users,  load average: 0.18, 0.05, 0.01\n               total        used        free      shared  buff/cache   available\nMem:             956         412         131           2         412         378\nSwap:              0           0           0\n2150400\nCPUUsageNSec=7895000\nActiveState=active\n 350737 18272  0.0 /tmp/tunnel-bench-20261031/frp_0.71.1_linux_amd64/frps -c frps.toml\n"
+  },
+  {
+    "time": 1793435016.5480216,
+    "label": "frp-1-64-1",
+    "raw": "2026-10-31T16:23:33+08:00\n 16:23:33 up 1 day,  5:35,  0 users,  load average: 0.17, 0.05, 0.01\n               total        used        free      shared  buff/cache   available\nMem:             956         412         131           2         413         378\nSwap:              0           0           0\n2560000\nCPUUsageNSec=18060000\nActiveState=active\n 350737 18872  0.1 /tmp/tunnel-bench-20261031/frp_0.71.1_linux_amd64/frps -c frps.toml\n"
+  },
+  {
+    "time": 1793435020.3486054,
+    "label": "frp-1-64-1",
+    "raw": "2026-10-31T16:23:36+08:00\n 16:23:36 up 1 day,  5:35,  0 users,  load average: 0.15, 0.05, 0.01\n               total        used        free      shared  buff/cache   available\nMem:             956         412         131           2         413         378\nSwap:              0           0           0\n2572288\nCPUUsageNSec=22193000\nActiveState=active\n 350737 18872  0.0 /tmp/tunnel-bench-20261031/frp_0.71.1_linux_amd64/frps -c frps.toml\n"
+  },
+  {
+    "time": 1793435024.2675128,
+    "label": "frp-1-64-4",
+    "raw": "2026-10-31T16:23:40+08:00\n 16:23:40 up 1 day,  5:35,  0 users,  load average: 0.15, 0.05, 0.01\n               total        used        free      shared  buff/cache   available\nMem:             956         412         131           2         413         378\nSwap:              0           0           0\n2711552\nCPUUsageNSec=29746000\nActiveState=active\n 350737 18872  0.0 /tmp/tunnel-bench-20261031/frp_0.71.1_linux_amd64/frps -c frps.toml\n"
+  },
+  {
+    "time": 1793435027.556175,
+    "label": "frp-1-65536-1",
+    "raw": "2026-10-31T16:23:44+08:00\n 16:23:44 up 1 day,  5:35,  0 users,  load average: 0.14, 0.05, 0.01\n               total        used        free      shared  buff/cache   available\nMem:             956         411         131           2         413         379\nSwap:              0           0           0\n3076096\nCPUUsageNSec=34442000\nActiveState=active\n 350737 19128  0.1 /tmp/tunnel-bench-20261031/frp_0.71.1_linux_amd64/frps -c frps.toml\n"
+  },
+  {
+    "time": 1793435031.6662939,
+    "label": "frp-1-65536-4",
+    "raw": "2026-10-31T16:23:48+08:00\n 16:23:48 up 1 day,  5:35,  0 users,  load average: 0.13, 0.05, 0.01\n               total        used        free      shared  buff/cache   available\nMem:             956         411         131           2         413         379\nSwap:              0           0           0\n4780032\nCPUUsageNSec=43897000\nActiveState=active\n 350737 21108  0.1 /tmp/tunnel-bench-20261031/frp_0.71.1_linux_amd64/frps -c frps.toml\n"
+  },
+  {
+    "time": 1793435034.6610112,
+    "label": "frp-1-1048576-1",
+    "raw": "2026-10-31T16:23:51+08:00\n 16:23:51 up 1 day,  5:35,  0 users,  load average: 0.13, 0.05, 0.01\n               total        used        free      shared  buff/cache   available\nMem:             956         412         130           2         413         378\nSwap:              0           0           0\n7483392\nCPUUsageNSec=51945000\nActiveState=active\n 350737 23672  0.1 /tmp/tunnel-bench-20261031/frp_0.71.1_linux_amd64/frps -c frps.toml\n"
+  },
+  {
+    "time": 1793435038.5224874,
+    "label": "frp-2-64-1",
+    "raw": "2026-10-31T16:23:55+08:00\n 16:23:54 up 1 day,  5:36,  0 users,  load average: 0.12, 0.05, 0.01\n               total        used        free      shared  buff/cache   available\nMem:             956         411         130           2         414         379\nSwap:              0           0           0\n7548928\nCPUUsageNSec=60081000\nActiveState=active\n 350737 23672  0.1 /tmp/tunnel-bench-20261031/frp_0.71.1_linux_amd64/frps -c frps.toml\n"
+  },
+  {
+    "time": 1793435042.0087507,
+    "label": "frp-2-64-1",
+    "raw": "2026-10-31T16:23:58+08:00\n 16:23:58 up 1 day,  5:36,  0 users,  load average: 0.11, 0.05, 0.01\n               total        used        free      shared  buff/cache   available\nMem:             956         411         130           2         414         379\nSwap:              0           0           0\n7593984\nCPUUsageNSec=66892000\nActiveState=active\n 350737 23856  0.1 /tmp/tunnel-bench-20261031/frp_0.71.1_linux_amd64/frps -c frps.toml\n"
+  },
+  {
+    "time": 1793435045.9380176,
+    "label": "frp-2-64-4",
+    "raw": "2026-10-31T16:24:02+08:00\n 16:24:02 up 1 day,  5:36,  0 users,  load average: 0.10, 0.05, 0.01\n               total        used        free      shared  buff/cache   available\nMem:             956         410         130           2         415         380\nSwap:              0           0           0\n7766016\nCPUUsageNSec=75103000\nActiveState=active\n 350737 23856  0.1 /tmp/tunnel-bench-20261031/frp_0.71.1_linux_amd64/frps -c frps.toml\n"
+  },
+  {
+    "time": 1793435049.2859728,
+    "label": "frp-2-65536-1",
+    "raw": "2026-10-31T16:24:05+08:00\n 16:24:05 up 1 day,  5:36,  0 users,  load average: 0.10, 0.05, 0.01\n               total        used        free      shared  buff/cache   available\nMem:             956         411         130           2         415         379\nSwap:              0           0           0\n6574080\nCPUUsageNSec=81577000\nActiveState=active\n 350737 22656  0.1 /tmp/tunnel-bench-20261031/frp_0.71.1_linux_amd64/frps -c frps.toml\n"
+  },
+  {
+    "time": 1793435053.407878,
+    "label": "frp-2-65536-4",
+    "raw": "2026-10-31T16:24:09+08:00\n 16:24:09 up 1 day,  5:36,  0 users,  load average: 0.09, 0.05, 0.01\n               total        used        free      shared  buff/cache   available\nMem:             956         410         130           2         415         380\nSwap:              0           0           0\n7065600\nCPUUsageNSec=91470000\nActiveState=active\n 350737 23156  0.1 /tmp/tunnel-bench-20261031/frp_0.71.1_linux_amd64/frps -c frps.toml\n"
+  },
+  {
+    "time": 1793435058.8832479,
+    "label": "frp-2-1048576-1",
+    "raw": "2026-10-31T16:24:15+08:00\n 16:24:15 up 1 day,  5:36,  0 users,  load average: 0.08, 0.05, 0.01\n               total        used        free      shared  buff/cache   available\nMem:             956         410         130           2         415         380\nSwap:              0           0           0\n9465856\nCPUUsageNSec=103146000\nActiveState=active\n 350737 25600  0.1 /tmp/tunnel-bench-20261031/frp_0.71.1_linux_amd64/frps -c frps.toml\n"
+  },
+  {
+    "time": 1793435061.614945,
+    "label": "frp-3-64-1",
+    "raw": "2026-10-31T16:24:18+08:00\n 16:24:18 up 1 day,  5:36,  0 users,  load average: 0.08, 0.04, 0.01\n               total        used        free      shared  buff/cache   available\nMem:             956         410         130           2         415         380\nSwap:              0           0           0\n9523200\nCPUUsageNSec=111031000\nActiveState=active\n 350737 25600  0.1 /tmp/tunnel-bench-20261031/frp_0.71.1_linux_amd64/frps -c frps.toml\n"
+  },
+  {
+    "time": 1793435065.286444,
+    "label": "frp-3-64-1",
+    "raw": "2026-10-31T16:24:21+08:00\n 16:24:21 up 1 day,  5:36,  0 users,  load average: 0.07, 0.04, 0.01\n               total        used        free      shared  buff/cache   available\nMem:             956         410         130           2         415         380\nSwap:              0           0           0\n9543680\nCPUUsageNSec=116294000\nActiveState=active\n 350737 25600  0.1 /tmp/tunnel-bench-20261031/frp_0.71.1_linux_amd64/frps -c frps.toml\n"
+  },
+  {
+    "time": 1793435069.1985188,
+    "label": "frp-3-64-4",
+    "raw": "2026-10-31T16:24:25+08:00\n 16:24:25 up 1 day,  5:36,  0 users,  load average: 0.07, 0.04, 0.01\n               total        used        free      shared  buff/cache   available\nMem:             956         410         130           2         416         380\nSwap:              0           0           0\n9625600\nCPUUsageNSec=124110000\nActiveState=active\n 350737 25836  0.1 /tmp/tunnel-bench-20261031/frp_0.71.1_linux_amd64/frps -c frps.toml\n"
+  },
+  {
+    "time": 1793435072.8230996,
+    "label": "frp-3-65536-1",
+    "raw": "2026-10-31T16:24:29+08:00\n 16:24:29 up 1 day,  5:36,  0 users,  load average: 0.07, 0.04, 0.01\n               total        used        free      shared  buff/cache   available\nMem:             956         423         116           2         416         367\nSwap:              0           0           0\n9805824\nCPUUsageNSec=129541000\nActiveState=active\n 350737 25836  0.1 /tmp/tunnel-bench-20261031/frp_0.71.1_linux_amd64/frps -c frps.toml\n"
+  },
+  {
+    "time": 1793435077.0372772,
+    "label": "frp-3-65536-4",
+    "raw": "2026-10-31T16:24:33+08:00\n 16:24:33 up 1 day,  5:36,  0 users,  load average: 0.06, 0.04, 0.01\n               total        used        free      shared  buff/cache   available\nMem:             956         423         116           2         416         367\nSwap:              0           0           0\n7200768\nCPUUsageNSec=141243000\nActiveState=active\n 350737 23320  0.1 /tmp/tunnel-bench-20261031/frp_0.71.1_linux_amd64/frps -c frps.toml\n"
+  },
+  {
+    "time": 1793435085.018751,
+    "label": "frp-3-1048576-1",
+    "raw": "2026-10-31T16:24:41+08:00\n 16:24:41 up 1 day,  5:36,  0 users,  load average: 0.06, 0.04, 0.01\n               total        used        free      shared  buff/cache   available\nMem:             956         423         116           2         416         367\nSwap:              0           0           0\n8593408\nCPUUsageNSec=152612000\nActiveState=active\n 350737 24872  0.1 /tmp/tunnel-bench-20261031/frp_0.71.1_linux_amd64/frps -c frps.toml\n"
+  },
+  {
+    "time": 1793435091.5606604,
+    "label": "openssh-ready",
+    "raw": "2026-10-31T16:24:48+08:00\n 16:24:48 up 1 day,  5:36,  0 users,  load average: 0.20, 0.07, 0.02\n               total        used        free      shared  buff/cache   available\nMem:             956         423         116           2         417         367\nSwap:              0           0           0\n4378624\nCPUUsageNSec=23088000\nActiveState=active\n"
+  },
+  {
+    "time": 1793435097.0974426,
+    "label": "openssh-1-64-1",
+    "raw": "2026-10-31T16:24:53+08:00\n 16:24:53 up 1 day,  5:37,  0 users,  load average: 0.35, 0.10, 0.03\n               total        used        free      shared  buff/cache   available\nMem:             956         422         116           2         417         368\nSwap:              0           0           0\n4378624\nCPUUsageNSec=23088000\nActiveState=active\n"
+  },
+  {
+    "time": 1793435100.2054741,
+    "label": "openssh-1-64-1",
+    "raw": "2026-10-31T16:24:56+08:00\n 16:24:56 up 1 day,  5:37,  0 users,  load average: 0.32, 0.10, 0.03\n               total        used        free      shared  buff/cache   available\nMem:             956         422         116           2         417         368\nSwap:              0           0           0\n4378624\nCPUUsageNSec=23088000\nActiveState=active\n"
+  },
+  {
+    "time": 1793435104.129018,
+    "label": "openssh-1-64-4",
+    "raw": "2026-10-31T16:25:00+08:00\n 16:25:00 up 1 day,  5:37,  0 users,  load average: 0.32, 0.10, 0.03\n               total        used        free      shared  buff/cache   available\nMem:             956         422         116           2         417         368\nSwap:              0           0           0\n4378624\nCPUUsageNSec=23088000\nActiveState=active\n"
+  },
+  {
+    "time": 1793435107.466933,
+    "label": "openssh-1-65536-1",
+    "raw": "2026-10-31T16:25:03+08:00\n 16:25:03 up 1 day,  5:37,  0 users,  load average: 0.29, 0.10, 0.03\n               total        used        free      shared  buff/cache   available\nMem:             956         422         116           2         417         368\nSwap:              0           0           0\n4378624\nCPUUsageNSec=23088000\nActiveState=active\n"
+  },
+  {
+    "time": 1793435111.6047676,
+    "label": "openssh-1-65536-4",
+    "raw": "2026-10-31T16:25:08+08:00\n 16:25:08 up 1 day,  5:37,  0 users,  load average: 0.27, 0.10, 0.03\n               total        used        free      shared  buff/cache   available\nMem:             956         422         116           2         418         368\nSwap:              0           0           0\n4378624\nCPUUsageNSec=23088000\nActiveState=active\n"
+  },
+  {
+    "time": 1793435115.4767067,
+    "label": "openssh-1-1048576-1",
+    "raw": "2026-10-31T16:25:11+08:00\n 16:25:11 up 1 day,  5:37,  0 users,  load average: 0.25, 0.10, 0.03\n               total        used        free      shared  buff/cache   available\nMem:             956         422         116           2         418         368\nSwap:              0           0           0\n4378624\nCPUUsageNSec=23088000\nActiveState=active\n"
+  },
+  {
+    "time": 1793435119.8856487,
+    "label": "openssh-2-64-1",
+    "raw": "2026-10-31T16:25:16+08:00\n 16:25:16 up 1 day,  5:37,  0 users,  load average: 0.25, 0.10, 0.03\n               total        used        free      shared  buff/cache   available\nMem:             956         422         116           2         418         368\nSwap:              0           0           0\n4378624\nCPUUsageNSec=23088000\nActiveState=active\n"
+  },
+  {
+    "time": 1793435122.942858,
+    "label": "openssh-2-64-1",
+    "raw": "2026-10-31T16:25:19+08:00\n 16:25:19 up 1 day,  5:37,  0 users,  load average: 0.23, 0.10, 0.03\n               total        used        free      shared  buff/cache   available\nMem:             956         421         116           2         418         368\nSwap:              0           0           0\n4378624\nCPUUsageNSec=23088000\nActiveState=active\n"
+  },
+  {
+    "time": 1793435126.8551524,
+    "label": "openssh-2-64-4",
+    "raw": "2026-10-31T16:25:23+08:00\n 16:25:23 up 1 day,  5:37,  0 users,  load average: 0.21, 0.09, 0.02\n               total        used        free      shared  buff/cache   available\nMem:             956         421         116           2         418         369\nSwap:              0           0           0\n4378624\nCPUUsageNSec=23088000\nActiveState=active\n"
+  },
+  {
+    "time": 1793435130.192002,
+    "label": "openssh-2-65536-1",
+    "raw": "2026-10-31T16:25:26+08:00\n 16:25:26 up 1 day,  5:37,  0 users,  load average: 0.35, 0.12, 0.04\n               total        used        free      shared  buff/cache   available\nMem:             956         421         116           2         418         369\nSwap:              0           0           0\n4378624\nCPUUsageNSec=23088000\nActiveState=active\n"
+  },
+  {
+    "time": 1793435134.513476,
+    "label": "openssh-2-65536-4",
+    "raw": "2026-10-31T16:25:31+08:00\n 16:25:31 up 1 day,  5:37,  0 users,  load average: 0.35, 0.12, 0.04\n               total        used        free      shared  buff/cache   available\nMem:             956         421         116           2         419         369\nSwap:              0           0           0\n4378624\nCPUUsageNSec=23088000\nActiveState=active\n"
+  },
+  {
+    "time": 1793435140.1248739,
+    "label": "openssh-2-1048576-1",
+    "raw": "2026-10-31T16:25:36+08:00\n 16:25:36 up 1 day,  5:37,  0 users,  load average: 0.30, 0.12, 0.03\n               total        used        free      shared  buff/cache   available\nMem:             956         421         116           2         419         369\nSwap:              0           0           0\n4378624\nCPUUsageNSec=23088000\nActiveState=active\n"
+  },
+  {
+    "time": 1793435144.6838899,
+    "label": "openssh-3-64-1",
+    "raw": "2026-10-31T16:25:41+08:00\n 16:25:41 up 1 day,  5:37,  0 users,  load average: 0.30, 0.12, 0.03\n               total        used        free      shared  buff/cache   available\nMem:             956         421         116           2         419         369\nSwap:              0           0           0\n4378624\nCPUUsageNSec=23088000\nActiveState=active\n"
+  },
+  {
+    "time": 1793435147.9174514,
+    "label": "openssh-3-64-1",
+    "raw": "2026-10-31T16:25:44+08:00\n 16:25:44 up 1 day,  5:37,  0 users,  load average: 0.51, 0.17, 0.05\n               total        used        free      shared  buff/cache   available\nMem:             956         421         116           2         419         369\nSwap:              0           0           0\n4378624\nCPUUsageNSec=23088000\nActiveState=active\n"
+  },
+  {
+    "time": 1793435151.8530982,
+    "label": "openssh-3-64-4",
+    "raw": "2026-10-31T16:25:48+08:00\n 16:25:48 up 1 day,  5:37,  0 users,  load average: 0.47, 0.16, 0.05\n               total        used        free      shared  buff/cache   available\nMem:             956         420         116           2         419         370\nSwap:              0           0           0\n4378624\nCPUUsageNSec=23088000\nActiveState=active\n"
+  },
+  {
+    "time": 1793435155.211264,
+    "label": "openssh-3-65536-1",
+    "raw": "2026-10-31T16:25:51+08:00\n 16:25:51 up 1 day,  5:38,  0 users,  load average: 0.43, 0.16, 0.05\n               total        used        free      shared  buff/cache   available\nMem:             956         420         116           2         420         370\nSwap:              0           0           0\n4378624\nCPUUsageNSec=23088000\nActiveState=active\n"
+  },
+  {
+    "time": 1793435159.370029,
+    "label": "openssh-3-65536-4",
+    "raw": "2026-10-31T16:25:55+08:00\n 16:25:55 up 1 day,  5:38,  0 users,  load average: 0.43, 0.16, 0.05\n               total        used        free      shared  buff/cache   available\nMem:             956         420         116           2         420         370\nSwap:              0           0           0\n4378624\nCPUUsageNSec=23088000\nActiveState=active\n"
+  },
+  {
+    "time": 1793435163.8517902,
+    "label": "openssh-3-1048576-1",
+    "raw": "2026-10-31T16:26:00+08:00\n 16:26:00 up 1 day,  5:38,  0 users,  load average: 0.48, 0.18, 0.06\n               total        used        free      shared  buff/cache   available\nMem:             956         420         116           2         420         370\nSwap:              0           0           0\n4378624\nCPUUsageNSec=23088000\nActiveState=active\n"
+  }
+]

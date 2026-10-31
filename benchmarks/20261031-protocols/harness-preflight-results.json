@@ -1,0 +1,2447 @@
+[
+  {
+    "tool": "java",
+    "case": "TCP-64B",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 1.4250978000018222,
+    "p50_ms": 229.41639999771724,
+    "max_ms": 277.3586000002979,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 221.95219999775873,
+        "meta": {
+          "verified_bytes": 64,
+          "half_close": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 277.3586000002979,
+        "meta": {
+          "verified_bytes": 64,
+          "half_close": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 242.34209999849554,
+        "meta": {
+          "verified_bytes": 64,
+          "half_close": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 201.94730000002892,
+        "meta": {
+          "verified_bytes": 64,
+          "half_close": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 229.41639999771724,
+        "meta": {
+          "verified_bytes": 64,
+          "half_close": false
+        }
+      }
+    ]
+  },
+  {
+    "tool": "java",
+    "case": "TCP-64KiB",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 1.6372928999990108,
+    "p50_ms": 256.39529999898514,
+    "max_ms": 315.2838999994856,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 315.2838999994856,
+        "meta": {
+          "verified_bytes": 65536,
+          "half_close": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 256.39529999898514,
+        "meta": {
+          "verified_bytes": 65536,
+          "half_close": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 313.5819999988598,
+        "meta": {
+          "verified_bytes": 65536,
+          "half_close": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 245.4522999978508,
+        "meta": {
+          "verified_bytes": 65536,
+          "half_close": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 254.6196000002965,
+        "meta": {
+          "verified_bytes": 65536,
+          "half_close": false
+        }
+      }
+    ]
+  },
+  {
+    "tool": "java",
+    "case": "TCP-half-close",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 5,
+    "seconds": 0.8876571000000695,
+    "p50_ms": null,
+    "max_ms": null,
+    "samples": [
+      {
+        "ok": false,
+        "ms": 127.11789999957546,
+        "error": "EOFError: unexpected EOF"
+      },
+      {
+        "ok": false,
+        "ms": 162.69420000026003,
+        "error": "EOFError: unexpected EOF"
+      },
+      {
+        "ok": false,
+        "ms": 101.24069999801577,
+        "error": "EOFError: unexpected EOF"
+      },
+      {
+        "ok": false,
+        "ms": 116.05739999868092,
+        "error": "EOFError: unexpected EOF"
+      },
+      {
+        "ok": false,
+        "ms": 128.32720000005793,
+        "error": "EOFError: unexpected EOF"
+      }
+    ]
+  },
+  {
+    "tool": "java",
+    "case": "HTTP1-GET",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 5,
+    "seconds": 0.25288219999856665,
+    "p50_ms": null,
+    "max_ms": null,
+    "samples": [
+      {
+        "ok": false,
+        "ms": 0.015300000086426735,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.03780000042752363,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.035799999750452116,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.040099999750964344,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.04519999856711365,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      }
+    ]
+  },
+  {
+    "tool": "java",
+    "case": "HTTP1-POST-64KiB",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 5,
+    "seconds": 0.25350149999940186,
+    "p50_ms": null,
+    "max_ms": null,
+    "samples": [
+      {
+        "ok": false,
+        "ms": 0.014799999917158857,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.019499999325489625,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.026199999410891905,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.036299999919719994,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.04280000212020241,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      }
+    ]
+  },
+  {
+    "tool": "java",
+    "case": "SSE",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 5,
+    "seconds": 0.2535548999985622,
+    "p50_ms": null,
+    "max_ms": null,
+    "samples": [
+      {
+        "ok": false,
+        "ms": 0.014800003555137664,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.050099999498343095,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.0532000012753997,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.049100002797786146,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.2420999990135897,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      }
+    ]
+  },
+  {
+    "tool": "java",
+    "case": "HTTPS-TLS1.2",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 5,
+    "seconds": 0.2534585000030347,
+    "p50_ms": null,
+    "max_ms": null,
+    "samples": [
+      {
+        "ok": false,
+        "ms": 0.02390000008745119,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.05279999822960235,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.04699999772128649,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.043700001697288826,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.04930000068270601,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      }
+    ]
+  },
+  {
+    "tool": "java",
+    "case": "HTTPS-TLS1.3",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 5,
+    "seconds": 0.2531495000002906,
+    "p50_ms": null,
+    "max_ms": null,
+    "samples": [
+      {
+        "ok": false,
+        "ms": 0.030699997296324,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.05720000262954272,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.052299998060334474,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.048000001697801054,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.049799997213995084,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      }
+    ]
+  },
+  {
+    "tool": "java",
+    "case": "WebSocket-64B",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 5,
+    "seconds": 0.2603319999980158,
+    "p50_ms": null,
+    "max_ms": null,
+    "samples": [
+      {
+        "ok": false,
+        "ms": 3.781100000196602,
+        "error": "InvalidProxy: socks://127.0.0.1:1080 isn't a valid proxy: scheme socks isn't supported"
+      },
+      {
+        "ok": false,
+        "ms": 0.8544999982404988,
+        "error": "InvalidProxy: socks://127.0.0.1:1080 isn't a valid proxy: scheme socks isn't supported"
+      },
+      {
+        "ok": false,
+        "ms": 0.7449000004271511,
+        "error": "InvalidProxy: socks://127.0.0.1:1080 isn't a valid proxy: scheme socks isn't supported"
+      },
+      {
+        "ok": false,
+        "ms": 1.157500002591405,
+        "error": "InvalidProxy: socks://127.0.0.1:1080 isn't a valid proxy: scheme socks isn't supported"
+      },
+      {
+        "ok": false,
+        "ms": 0.9948999977495987,
+        "error": "InvalidProxy: socks://127.0.0.1:1080 isn't a valid proxy: scheme socks isn't supported"
+      }
+    ]
+  },
+  {
+    "tool": "java",
+    "case": "WebSocket-64KiB",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 5,
+    "seconds": 0.2572860000000219,
+    "p50_ms": null,
+    "max_ms": null,
+    "samples": [
+      {
+        "ok": false,
+        "ms": 0.7236000019474886,
+        "error": "InvalidProxy: socks://127.0.0.1:1080 isn't a valid proxy: scheme socks isn't supported"
+      },
+      {
+        "ok": false,
+        "ms": 0.8945000008679926,
+        "error": "InvalidProxy: socks://127.0.0.1:1080 isn't a valid proxy: scheme socks isn't supported"
+      },
+      {
+        "ok": false,
+        "ms": 0.7123000032152049,
+        "error": "InvalidProxy: socks://127.0.0.1:1080 isn't a valid proxy: scheme socks isn't supported"
+      },
+      {
+        "ok": false,
+        "ms": 2.1034000019426458,
+        "error": "InvalidProxy: socks://127.0.0.1:1080 isn't a valid proxy: scheme socks isn't supported"
+      },
+      {
+        "ok": false,
+        "ms": 1.2736999997287057,
+        "error": "InvalidProxy: socks://127.0.0.1:1080 isn't a valid proxy: scheme socks isn't supported"
+      }
+    ]
+  },
+  {
+    "tool": "java",
+    "case": "WSS",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 5,
+    "seconds": 0.2791791999989073,
+    "p50_ms": null,
+    "max_ms": null,
+    "samples": [
+      {
+        "ok": false,
+        "ms": 4.971799997292692,
+        "error": "InvalidProxy: socks://127.0.0.1:1080 isn't a valid proxy: scheme socks isn't supported"
+      },
+      {
+        "ok": false,
+        "ms": 4.6441999984381255,
+        "error": "InvalidProxy: socks://127.0.0.1:1080 isn't a valid proxy: scheme socks isn't supported"
+      },
+      {
+        "ok": false,
+        "ms": 4.539000001386739,
+        "error": "InvalidProxy: socks://127.0.0.1:1080 isn't a valid proxy: scheme socks isn't supported"
+      },
+      {
+        "ok": false,
+        "ms": 4.409700002725003,
+        "error": "InvalidProxy: socks://127.0.0.1:1080 isn't a valid proxy: scheme socks isn't supported"
+      },
+      {
+        "ok": false,
+        "ms": 7.585399998788489,
+        "error": "InvalidProxy: socks://127.0.0.1:1080 isn't a valid proxy: scheme socks isn't supported"
+      }
+    ]
+  },
+  {
+    "tool": "java",
+    "case": "HTTP2-h2c-4streams",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 1.2086200999983703,
+    "p50_ms": 185.2230000004056,
+    "max_ms": 219.670499998756,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 165.11040000114008,
+        "meta": {
+          "verified_bytes": 4096,
+          "parallel_streams": 4,
+          "alpn": "prior-knowledge"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 207.88439999887487,
+        "meta": {
+          "verified_bytes": 4096,
+          "parallel_streams": 4,
+          "alpn": "prior-knowledge"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 178.64840000038384,
+        "meta": {
+          "verified_bytes": 4096,
+          "parallel_streams": 4,
+          "alpn": "prior-knowledge"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 219.670499998756,
+        "meta": {
+          "verified_bytes": 4096,
+          "parallel_streams": 4,
+          "alpn": "prior-knowledge"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 185.2230000004056,
+        "meta": {
+          "verified_bytes": 4096,
+          "parallel_streams": 4,
+          "alpn": "prior-knowledge"
+        }
+      }
+    ]
+  },
+  {
+    "tool": "java",
+    "case": "HTTP2-TLS-4streams",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 2.00945209999918,
+    "p50_ms": 355.68440000133705,
+    "max_ms": 381.90250000116066,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 381.90250000116066,
+        "meta": {
+          "verified_bytes": 4096,
+          "parallel_streams": 4,
+          "alpn": "h2"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 356.787799999438,
+        "meta": {
+          "verified_bytes": 4096,
+          "parallel_streams": 4,
+          "alpn": "h2"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 331.8453000028967,
+        "meta": {
+          "verified_bytes": 4096,
+          "parallel_streams": 4,
+          "alpn": "h2"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 329.9825000030978,
+        "meta": {
+          "verified_bytes": 4096,
+          "parallel_streams": 4,
+          "alpn": "h2"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 355.68440000133705,
+        "meta": {
+          "verified_bytes": 4096,
+          "parallel_streams": 4,
+          "alpn": "h2"
+        }
+      }
+    ]
+  },
+  {
+    "tool": "java",
+    "case": "gRPC-unary-64B",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 1.5701775999987149,
+    "p50_ms": 273.44710000033956,
+    "max_ms": 285.17289999945206,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 283.2252000007429,
+        "meta": {
+          "verified_bytes": 64,
+          "messages": 1,
+          "tls": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 273.44710000033956,
+        "meta": {
+          "verified_bytes": 64,
+          "messages": 1,
+          "tls": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 285.17289999945206,
+        "meta": {
+          "verified_bytes": 64,
+          "messages": 1,
+          "tls": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 251.84530000115046,
+        "meta": {
+          "verified_bytes": 64,
+          "messages": 1,
+          "tls": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 214.44749999864143,
+        "meta": {
+          "verified_bytes": 64,
+          "messages": 1,
+          "tls": false
+        }
+      }
+    ]
+  },
+  {
+    "tool": "java",
+    "case": "gRPC-unary-64KiB",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 2.083634099999472,
+    "p50_ms": 361.6198000017903,
+    "max_ms": 405.27989999827696,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 326.1507999995956,
+        "meta": {
+          "verified_bytes": 65536,
+          "messages": 1,
+          "tls": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 405.27989999827696,
+        "meta": {
+          "verified_bytes": 65536,
+          "messages": 1,
+          "tls": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 347.0140999997966,
+        "meta": {
+          "verified_bytes": 65536,
+          "messages": 1,
+          "tls": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 391.6934999979276,
+        "meta": {
+          "verified_bytes": 65536,
+          "messages": 1,
+          "tls": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 361.6198000017903,
+        "meta": {
+          "verified_bytes": 65536,
+          "messages": 1,
+          "tls": false
+        }
+      }
+    ]
+  },
+  {
+    "tool": "java",
+    "case": "gRPC-bidirectional",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 1.624955899998895,
+    "p50_ms": 293.00039999725414,
+    "max_ms": 322.675800001889,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 224.63179999977,
+        "meta": {
+          "verified_bytes": 192,
+          "messages": 3,
+          "tls": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 225.30879999976605,
+        "meta": {
+          "verified_bytes": 192,
+          "messages": 3,
+          "tls": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 322.675800001889,
+        "meta": {
+          "verified_bytes": 192,
+          "messages": 3,
+          "tls": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 293.00039999725414,
+        "meta": {
+          "verified_bytes": 192,
+          "messages": 3,
+          "tls": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 299.95209999833605,
+        "meta": {
+          "verified_bytes": 192,
+          "messages": 3,
+          "tls": false
+        }
+      }
+    ]
+  },
+  {
+    "tool": "java",
+    "case": "gRPC-TLS",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 2.1665475000008882,
+    "p50_ms": 376.1440999987826,
+    "max_ms": 456.9995000019844,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 376.1440999987826,
+        "meta": {
+          "verified_bytes": 64,
+          "messages": 1,
+          "tls": true
+        }
+      },
+      {
+        "ok": true,
+        "ms": 320.35289999839733,
+        "meta": {
+          "verified_bytes": 64,
+          "messages": 1,
+          "tls": true
+        }
+      },
+      {
+        "ok": true,
+        "ms": 345.6459000008181,
+        "meta": {
+          "verified_bytes": 64,
+          "messages": 1,
+          "tls": true
+        }
+      },
+      {
+        "ok": true,
+        "ms": 456.9995000019844,
+        "meta": {
+          "verified_bytes": 64,
+          "messages": 1,
+          "tls": true
+        }
+      },
+      {
+        "ok": true,
+        "ms": 414.16279999975814,
+        "meta": {
+          "verified_bytes": 64,
+          "messages": 1,
+          "tls": true
+        }
+      }
+    ]
+  },
+  {
+    "tool": "java",
+    "case": "SSH-exec",
+    "repeat": 1,
+    "attempts": 3,
+    "errors": 0,
+    "seconds": 2.550729299997329,
+    "p50_ms": 798.5670999987633,
+    "max_ms": 835.2704999997513,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 835.2704999997513,
+        "meta": {
+          "verified_bytes": 9,
+          "host_key_verified": true,
+          "exit_status": 0
+        }
+      },
+      {
+        "ok": true,
+        "ms": 798.5670999987633,
+        "meta": {
+          "verified_bytes": 9,
+          "host_key_verified": true,
+          "exit_status": 0
+        }
+      },
+      {
+        "ok": true,
+        "ms": 765.2286999982607,
+        "meta": {
+          "verified_bytes": 9,
+          "host_key_verified": true,
+          "exit_status": 0
+        }
+      }
+    ]
+  },
+  {
+    "tool": "java",
+    "case": "SFTP-64KiB",
+    "repeat": 1,
+    "attempts": 3,
+    "errors": 0,
+    "seconds": 5.444228700001986,
+    "p50_ms": 1757.963000000018,
+    "max_ms": 1813.8021000013396,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 1757.963000000018,
+        "meta": {
+          "verified_bytes": 131072,
+          "host_key_verified": true
+        }
+      },
+      {
+        "ok": true,
+        "ms": 1721.3249000014912,
+        "meta": {
+          "verified_bytes": 131072,
+          "host_key_verified": true
+        }
+      },
+      {
+        "ok": true,
+        "ms": 1813.8021000013396,
+        "meta": {
+          "verified_bytes": 131072,
+          "host_key_verified": true
+        }
+      }
+    ]
+  },
+  {
+    "tool": "frp",
+    "case": "TCP-64B",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 0.8796039000008022,
+    "p50_ms": 111.20719999962603,
+    "max_ms": 195.4955000001064,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 152.18610000010813,
+        "meta": {
+          "verified_bytes": 64,
+          "half_close": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 79.162299996824,
+        "meta": {
+          "verified_bytes": 64,
+          "half_close": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 111.20719999962603,
+        "meta": {
+          "verified_bytes": 64,
+          "half_close": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 195.4955000001064,
+        "meta": {
+          "verified_bytes": 64,
+          "half_close": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 89.74519999901531,
+        "meta": {
+          "verified_bytes": 64,
+          "half_close": false
+        }
+      }
+    ]
+  },
+  {
+    "tool": "frp",
+    "case": "TCP-64KiB",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 1.60357120000117,
+    "p50_ms": 267.35439999902155,
+    "max_ms": 300.13480000343407,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 267.35439999902155,
+        "meta": {
+          "verified_bytes": 65536,
+          "half_close": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 247.188900000765,
+        "meta": {
+          "verified_bytes": 65536,
+          "half_close": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 300.13480000343407,
+        "meta": {
+          "verified_bytes": 65536,
+          "half_close": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 256.90300000132993,
+        "meta": {
+          "verified_bytes": 65536,
+          "half_close": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 279.76140000100713,
+        "meta": {
+          "verified_bytes": 65536,
+          "half_close": false
+        }
+      }
+    ]
+  },
+  {
+    "tool": "frp",
+    "case": "TCP-half-close",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 5,
+    "seconds": 0.574582699999155,
+    "p50_ms": null,
+    "max_ms": null,
+    "samples": [
+      {
+        "ok": false,
+        "ms": 80.97049999923911,
+        "error": "EOFError: unexpected EOF"
+      },
+      {
+        "ok": false,
+        "ms": 66.34710000071209,
+        "error": "EOFError: unexpected EOF"
+      },
+      {
+        "ok": false,
+        "ms": 55.0559000002977,
+        "error": "EOFError: unexpected EOF"
+      },
+      {
+        "ok": false,
+        "ms": 63.56220000088797,
+        "error": "EOFError: unexpected EOF"
+      },
+      {
+        "ok": false,
+        "ms": 56.97320000035688,
+        "error": "EOFError: unexpected EOF"
+      }
+    ]
+  },
+  {
+    "tool": "frp",
+    "case": "HTTP1-GET",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 5,
+    "seconds": 0.2521161000004213,
+    "p50_ms": null,
+    "max_ms": null,
+    "samples": [
+      {
+        "ok": false,
+        "ms": 0.015300000086426735,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.045900000259280205,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.053099996875971556,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.040499999158782884,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.04529999932856299,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      }
+    ]
+  },
+  {
+    "tool": "frp",
+    "case": "HTTP1-POST-64KiB",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 5,
+    "seconds": 0.2527205000005779,
+    "p50_ms": null,
+    "max_ms": null,
+    "samples": [
+      {
+        "ok": false,
+        "ms": 0.01420000262442045,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.04389999958220869,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.035400000342633575,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.04400000034365803,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.037099998735357076,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      }
+    ]
+  },
+  {
+    "tool": "frp",
+    "case": "SSE",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 5,
+    "seconds": 0.2534999000017706,
+    "p50_ms": null,
+    "max_ms": null,
+    "samples": [
+      {
+        "ok": false,
+        "ms": 0.013900000340072438,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.043000000005122274,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.05020000025979243,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.04039999839733355,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.04660000195144676,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      }
+    ]
+  },
+  {
+    "tool": "frp",
+    "case": "HTTPS-TLS1.2",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 5,
+    "seconds": 0.25315390000105253,
+    "p50_ms": null,
+    "max_ms": null,
+    "samples": [
+      {
+        "ok": false,
+        "ms": 0.021299998479662463,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.04439999975147657,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.05450000026030466,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.04220000118948519,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.10889999975915998,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      }
+    ]
+  },
+  {
+    "tool": "frp",
+    "case": "HTTPS-TLS1.3",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 5,
+    "seconds": 0.2518502000020817,
+    "p50_ms": null,
+    "max_ms": null,
+    "samples": [
+      {
+        "ok": false,
+        "ms": 0.01720000000204891,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.039500002458225936,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.053800002206116915,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.046399996790569276,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.04099999932805076,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      }
+    ]
+  },
+  {
+    "tool": "frp",
+    "case": "WebSocket-64B",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 5,
+    "seconds": 0.25745869999809656,
+    "p50_ms": null,
+    "max_ms": null,
+    "samples": [
+      {
+        "ok": false,
+        "ms": 0.9615000017220154,
+        "error": "InvalidProxy: socks://127.0.0.1:1080 isn't a valid proxy: scheme socks isn't supported"
+      },
+      {
+        "ok": false,
+        "ms": 1.0142999999516178,
+        "error": "InvalidProxy: socks://127.0.0.1:1080 isn't a valid proxy: scheme socks isn't supported"
+      },
+      {
+        "ok": false,
+        "ms": 0.9003000013763085,
+        "error": "InvalidProxy: socks://127.0.0.1:1080 isn't a valid proxy: scheme socks isn't supported"
+      },
+      {
+        "ok": false,
+        "ms": 1.4461000027949922,
+        "error": "InvalidProxy: socks://127.0.0.1:1080 isn't a valid proxy: scheme socks isn't supported"
+      },
+      {
+        "ok": false,
+        "ms": 1.0373000004619826,
+        "error": "InvalidProxy: socks://127.0.0.1:1080 isn't a valid proxy: scheme socks isn't supported"
+      }
+    ]
+  },
+  {
+    "tool": "frp",
+    "case": "WebSocket-64KiB",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 5,
+    "seconds": 0.25754480000250624,
+    "p50_ms": null,
+    "max_ms": null,
+    "samples": [
+      {
+        "ok": false,
+        "ms": 0.9570000001986045,
+        "error": "InvalidProxy: socks://127.0.0.1:1080 isn't a valid proxy: scheme socks isn't supported"
+      },
+      {
+        "ok": false,
+        "ms": 0.7742000016150996,
+        "error": "InvalidProxy: socks://127.0.0.1:1080 isn't a valid proxy: scheme socks isn't supported"
+      },
+      {
+        "ok": false,
+        "ms": 0.8791000000201166,
+        "error": "InvalidProxy: socks://127.0.0.1:1080 isn't a valid proxy: scheme socks isn't supported"
+      },
+      {
+        "ok": false,
+        "ms": 1.2162999992142431,
+        "error": "InvalidProxy: socks://127.0.0.1:1080 isn't a valid proxy: scheme socks isn't supported"
+      },
+      {
+        "ok": false,
+        "ms": 0.8802999982435722,
+        "error": "InvalidProxy: socks://127.0.0.1:1080 isn't a valid proxy: scheme socks isn't supported"
+      }
+    ]
+  },
+  {
+    "tool": "frp",
+    "case": "WSS",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 5,
+    "seconds": 0.27590630000122474,
+    "p50_ms": null,
+    "max_ms": null,
+    "samples": [
+      {
+        "ok": false,
+        "ms": 4.126400002860464,
+        "error": "InvalidProxy: socks://127.0.0.1:1080 isn't a valid proxy: scheme socks isn't supported"
+      },
+      {
+        "ok": false,
+        "ms": 4.712599999038503,
+        "error": "InvalidProxy: socks://127.0.0.1:1080 isn't a valid proxy: scheme socks isn't supported"
+      },
+      {
+        "ok": false,
+        "ms": 5.524799998966046,
+        "error": "InvalidProxy: socks://127.0.0.1:1080 isn't a valid proxy: scheme socks isn't supported"
+      },
+      {
+        "ok": false,
+        "ms": 4.729500000394182,
+        "error": "InvalidProxy: socks://127.0.0.1:1080 isn't a valid proxy: scheme socks isn't supported"
+      },
+      {
+        "ok": false,
+        "ms": 4.64549999742303,
+        "error": "InvalidProxy: socks://127.0.0.1:1080 isn't a valid proxy: scheme socks isn't supported"
+      }
+    ]
+  },
+  {
+    "tool": "frp",
+    "case": "HTTP2-h2c-4streams",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 0.9720453000009002,
+    "p50_ms": 154.94780000153696,
+    "max_ms": 192.74510000104783,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 157.72700000161421,
+        "meta": {
+          "verified_bytes": 4096,
+          "parallel_streams": 4,
+          "alpn": "prior-knowledge"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 192.74510000104783,
+        "meta": {
+          "verified_bytes": 4096,
+          "parallel_streams": 4,
+          "alpn": "prior-knowledge"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 119.84260000099312,
+        "meta": {
+          "verified_bytes": 4096,
+          "parallel_streams": 4,
+          "alpn": "prior-knowledge"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 154.94780000153696,
+        "meta": {
+          "verified_bytes": 4096,
+          "parallel_streams": 4,
+          "alpn": "prior-knowledge"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 94.73660000003292,
+        "meta": {
+          "verified_bytes": 4096,
+          "parallel_streams": 4,
+          "alpn": "prior-knowledge"
+        }
+      }
+    ]
+  },
+  {
+    "tool": "frp",
+    "case": "HTTP2-TLS-4streams",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 1.3917470999986108,
+    "p50_ms": 239.1036000008171,
+    "max_ms": 257.1929999976419,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 239.6115000010468,
+        "meta": {
+          "verified_bytes": 4096,
+          "parallel_streams": 4,
+          "alpn": "h2"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 194.43750000209548,
+        "meta": {
+          "verified_bytes": 4096,
+          "parallel_streams": 4,
+          "alpn": "h2"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 239.1036000008171,
+        "meta": {
+          "verified_bytes": 4096,
+          "parallel_streams": 4,
+          "alpn": "h2"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 257.1929999976419,
+        "meta": {
+          "verified_bytes": 4096,
+          "parallel_streams": 4,
+          "alpn": "h2"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 209.5986999993329,
+        "meta": {
+          "verified_bytes": 4096,
+          "parallel_streams": 4,
+          "alpn": "h2"
+        }
+      }
+    ]
+  },
+  {
+    "tool": "frp",
+    "case": "gRPC-unary-64B",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 1.5442605999996886,
+    "p50_ms": 266.1000000007334,
+    "max_ms": 327.58060000196565,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 211.3546000000497,
+        "meta": {
+          "verified_bytes": 64,
+          "messages": 1,
+          "tls": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 327.58060000196565,
+        "meta": {
+          "verified_bytes": 64,
+          "messages": 1,
+          "tls": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 316.3328000009642,
+        "meta": {
+          "verified_bytes": 64,
+          "messages": 1,
+          "tls": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 266.1000000007334,
+        "meta": {
+          "verified_bytes": 64,
+          "messages": 1,
+          "tls": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 170.3148999986297,
+        "meta": {
+          "verified_bytes": 64,
+          "messages": 1,
+          "tls": false
+        }
+      }
+    ]
+  },
+  {
+    "tool": "frp",
+    "case": "gRPC-unary-64KiB",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 1.993409500002599,
+    "p50_ms": 382.686000000831,
+    "max_ms": 412.22430000198074,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 294.84880000018165,
+        "meta": {
+          "verified_bytes": 65536,
+          "messages": 1,
+          "tls": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 382.686000000831,
+        "meta": {
+          "verified_bytes": 65536,
+          "messages": 1,
+          "tls": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 384.77640000201063,
+        "meta": {
+          "verified_bytes": 65536,
+          "messages": 1,
+          "tls": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 266.52159999866853,
+        "meta": {
+          "verified_bytes": 65536,
+          "messages": 1,
+          "tls": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 412.22430000198074,
+        "meta": {
+          "verified_bytes": 65536,
+          "messages": 1,
+          "tls": false
+        }
+      }
+    ]
+  },
+  {
+    "tool": "frp",
+    "case": "gRPC-bidirectional",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 1.6611836000010953,
+    "p50_ms": 283.9152999986254,
+    "max_ms": 318.8444999977946,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 264.72800000192365,
+        "meta": {
+          "verified_bytes": 192,
+          "messages": 3,
+          "tls": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 283.9152999986254,
+        "meta": {
+          "verified_bytes": 192,
+          "messages": 3,
+          "tls": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 318.8444999977946,
+        "meta": {
+          "verified_bytes": 192,
+          "messages": 3,
+          "tls": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 241.68470000222442,
+        "meta": {
+          "verified_bytes": 192,
+          "messages": 3,
+          "tls": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 299.303299998428,
+        "meta": {
+          "verified_bytes": 192,
+          "messages": 3,
+          "tls": false
+        }
+      }
+    ]
+  },
+  {
+    "tool": "frp",
+    "case": "gRPC-TLS",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 2.1277826000005007,
+    "p50_ms": 358.3119999966584,
+    "max_ms": 470.9679000006872,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 470.9679000006872,
+        "meta": {
+          "verified_bytes": 64,
+          "messages": 1,
+          "tls": true
+        }
+      },
+      {
+        "ok": true,
+        "ms": 310.7731000018248,
+        "meta": {
+          "verified_bytes": 64,
+          "messages": 1,
+          "tls": true
+        }
+      },
+      {
+        "ok": true,
+        "ms": 398.9216000009037,
+        "meta": {
+          "verified_bytes": 64,
+          "messages": 1,
+          "tls": true
+        }
+      },
+      {
+        "ok": true,
+        "ms": 337.3831999997492,
+        "meta": {
+          "verified_bytes": 64,
+          "messages": 1,
+          "tls": true
+        }
+      },
+      {
+        "ok": true,
+        "ms": 358.3119999966584,
+        "meta": {
+          "verified_bytes": 64,
+          "messages": 1,
+          "tls": true
+        }
+      }
+    ]
+  },
+  {
+    "tool": "frp",
+    "case": "SSH-exec",
+    "repeat": 1,
+    "attempts": 3,
+    "errors": 0,
+    "seconds": 2.753436099999817,
+    "p50_ms": 881.6267000001972,
+    "max_ms": 894.1120999988925,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 894.1120999988925,
+        "meta": {
+          "verified_bytes": 9,
+          "host_key_verified": true,
+          "exit_status": 0
+        }
+      },
+      {
+        "ok": true,
+        "ms": 881.6267000001972,
+        "meta": {
+          "verified_bytes": 9,
+          "host_key_verified": true,
+          "exit_status": 0
+        }
+      },
+      {
+        "ok": true,
+        "ms": 826.8504000006942,
+        "meta": {
+          "verified_bytes": 9,
+          "host_key_verified": true,
+          "exit_status": 0
+        }
+      }
+    ]
+  },
+  {
+    "tool": "frp",
+    "case": "SFTP-64KiB",
+    "repeat": 1,
+    "attempts": 3,
+    "errors": 0,
+    "seconds": 6.021082200000819,
+    "p50_ms": 1900.9861000013188,
+    "max_ms": 2154.269700000441,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 1814.4440999967628,
+        "meta": {
+          "verified_bytes": 131072,
+          "host_key_verified": true
+        }
+      },
+      {
+        "ok": true,
+        "ms": 1900.9861000013188,
+        "meta": {
+          "verified_bytes": 131072,
+          "host_key_verified": true
+        }
+      },
+      {
+        "ok": true,
+        "ms": 2154.269700000441,
+        "meta": {
+          "verified_bytes": 131072,
+          "host_key_verified": true
+        }
+      }
+    ]
+  },
+  {
+    "tool": "openssh",
+    "case": "TCP-64B",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 1.5084404999979597,
+    "p50_ms": 241.29489999904763,
+    "max_ms": 353.33730000274954,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 175.30360000091605,
+        "meta": {
+          "verified_bytes": 64,
+          "half_close": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 241.29489999904763,
+        "meta": {
+          "verified_bytes": 64,
+          "half_close": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 353.33730000274954,
+        "meta": {
+          "verified_bytes": 64,
+          "half_close": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 256.06820000029984,
+        "meta": {
+          "verified_bytes": 64,
+          "half_close": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 230.37290000138455,
+        "meta": {
+          "verified_bytes": 64,
+          "half_close": false
+        }
+      }
+    ]
+  },
+  {
+    "tool": "openssh",
+    "case": "TCP-64KiB",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 1.6539976000021852,
+    "p50_ms": 274.0354000015941,
+    "max_ms": 314.16410000019823,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 314.16410000019823,
+        "meta": {
+          "verified_bytes": 65536,
+          "half_close": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 274.0354000015941,
+        "meta": {
+          "verified_bytes": 65536,
+          "half_close": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 274.2720000023837,
+        "meta": {
+          "verified_bytes": 65536,
+          "half_close": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 270.96570000139764,
+        "meta": {
+          "verified_bytes": 65536,
+          "half_close": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 267.1461999998428,
+        "meta": {
+          "verified_bytes": 65536,
+          "half_close": false
+        }
+      }
+    ]
+  },
+  {
+    "tool": "openssh",
+    "case": "TCP-half-close",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 1.4424751000005926,
+    "p50_ms": 226.63870000178576,
+    "max_ms": 287.6226000007591,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 287.6226000007591,
+        "meta": {
+          "verified_bytes": 64,
+          "half_close": true
+        }
+      },
+      {
+        "ok": true,
+        "ms": 223.1701000018802,
+        "meta": {
+          "verified_bytes": 64,
+          "half_close": true
+        }
+      },
+      {
+        "ok": true,
+        "ms": 193.88299999991432,
+        "meta": {
+          "verified_bytes": 64,
+          "half_close": true
+        }
+      },
+      {
+        "ok": true,
+        "ms": 259.472800000367,
+        "meta": {
+          "verified_bytes": 64,
+          "half_close": true
+        }
+      },
+      {
+        "ok": true,
+        "ms": 226.63870000178576,
+        "meta": {
+          "verified_bytes": 64,
+          "half_close": true
+        }
+      }
+    ]
+  },
+  {
+    "tool": "openssh",
+    "case": "HTTP1-GET",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 5,
+    "seconds": 0.253215699998691,
+    "p50_ms": null,
+    "max_ms": null,
+    "samples": [
+      {
+        "ok": false,
+        "ms": 0.027999998565064743,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.04669999907491729,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.042100000428035855,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.032199997804127634,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.03930000093532726,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      }
+    ]
+  },
+  {
+    "tool": "openssh",
+    "case": "HTTP1-POST-64KiB",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 5,
+    "seconds": 0.2567451000031724,
+    "p50_ms": null,
+    "max_ms": null,
+    "samples": [
+      {
+        "ok": false,
+        "ms": 0.013799999578623101,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.04399999670567922,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.03470000228844583,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.04409999746712856,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.04990000161342323,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      }
+    ]
+  },
+  {
+    "tool": "openssh",
+    "case": "SSE",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 5,
+    "seconds": 0.2543697000000975,
+    "p50_ms": null,
+    "max_ms": null,
+    "samples": [
+      {
+        "ok": false,
+        "ms": 0.015000001440057531,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.03139999898849055,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.03819999983534217,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.04850000186706893,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.03460000152699649,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      }
+    ]
+  },
+  {
+    "tool": "openssh",
+    "case": "HTTPS-TLS1.2",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 5,
+    "seconds": 0.25637819999974454,
+    "p50_ms": null,
+    "max_ms": null,
+    "samples": [
+      {
+        "ok": false,
+        "ms": 0.018799997633323073,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.047900000936351717,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.06170000051497482,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.0335000004270114,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.024099997972371057,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      }
+    ]
+  },
+  {
+    "tool": "openssh",
+    "case": "HTTPS-TLS1.3",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 5,
+    "seconds": 0.253154000001814,
+    "p50_ms": null,
+    "max_ms": null,
+    "samples": [
+      {
+        "ok": false,
+        "ms": 0.025299999833805487,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.05439999949885532,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.04020000051241368,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.03719999949680641,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      },
+      {
+        "ok": false,
+        "ms": 0.03469999865046702,
+        "error": "AttributeError: 'function' object has no attribute 'client'"
+      }
+    ]
+  },
+  {
+    "tool": "openssh",
+    "case": "WebSocket-64B",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 5,
+    "seconds": 0.2574927000023308,
+    "p50_ms": null,
+    "max_ms": null,
+    "samples": [
+      {
+        "ok": false,
+        "ms": 2.694400001928443,
+        "error": "InvalidProxy: socks://127.0.0.1:1080 isn't a valid proxy: scheme socks isn't supported"
+      },
+      {
+        "ok": false,
+        "ms": 0.6231000006664544,
+        "error": "InvalidProxy: socks://127.0.0.1:1080 isn't a valid proxy: scheme socks isn't supported"
+      },
+      {
+        "ok": false,
+        "ms": 0.27400000180932693,
+        "error": "InvalidProxy: socks://127.0.0.1:1080 isn't a valid proxy: scheme socks isn't supported"
+      },
+      {
+        "ok": false,
+        "ms": 0.7221999985631555,
+        "error": "InvalidProxy: socks://127.0.0.1:1080 isn't a valid proxy: scheme socks isn't supported"
+      },
+      {
+        "ok": false,
+        "ms": 0.27459999910206534,
+        "error": "InvalidProxy: socks://127.0.0.1:1080 isn't a valid proxy: scheme socks isn't supported"
+      }
+    ]
+  },
+  {
+    "tool": "openssh",
+    "case": "WebSocket-64KiB",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 5,
+    "seconds": 0.25788189999730093,
+    "p50_ms": null,
+    "max_ms": null,
+    "samples": [
+      {
+        "ok": false,
+        "ms": 1.050400001986418,
+        "error": "InvalidProxy: socks://127.0.0.1:1080 isn't a valid proxy: scheme socks isn't supported"
+      },
+      {
+        "ok": false,
+        "ms": 1.3733000014326535,
+        "error": "InvalidProxy: socks://127.0.0.1:1080 isn't a valid proxy: scheme socks isn't supported"
+      },
+      {
+        "ok": false,
+        "ms": 0.6762000011804048,
+        "error": "InvalidProxy: socks://127.0.0.1:1080 isn't a valid proxy: scheme socks isn't supported"
+      },
+      {
+        "ok": false,
+        "ms": 1.023100001475541,
+        "error": "InvalidProxy: socks://127.0.0.1:1080 isn't a valid proxy: scheme socks isn't supported"
+      },
+      {
+        "ok": false,
+        "ms": 0.794399998994777,
+        "error": "InvalidProxy: socks://127.0.0.1:1080 isn't a valid proxy: scheme socks isn't supported"
+      }
+    ]
+  },
+  {
+    "tool": "openssh",
+    "case": "WSS",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 5,
+    "seconds": 0.2772958999994444,
+    "p50_ms": null,
+    "max_ms": null,
+    "samples": [
+      {
+        "ok": false,
+        "ms": 4.2624000016076025,
+        "error": "InvalidProxy: socks://127.0.0.1:1080 isn't a valid proxy: scheme socks isn't supported"
+      },
+      {
+        "ok": false,
+        "ms": 4.9556000012671575,
+        "error": "InvalidProxy: socks://127.0.0.1:1080 isn't a valid proxy: scheme socks isn't supported"
+      },
+      {
+        "ok": false,
+        "ms": 4.659500002162531,
+        "error": "InvalidProxy: socks://127.0.0.1:1080 isn't a valid proxy: scheme socks isn't supported"
+      },
+      {
+        "ok": false,
+        "ms": 7.06239999999525,
+        "error": "InvalidProxy: socks://127.0.0.1:1080 isn't a valid proxy: scheme socks isn't supported"
+      },
+      {
+        "ok": false,
+        "ms": 4.58979999893927,
+        "error": "InvalidProxy: socks://127.0.0.1:1080 isn't a valid proxy: scheme socks isn't supported"
+      }
+    ]
+  },
+  {
+    "tool": "openssh",
+    "case": "HTTP2-h2c-4streams",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 1.1686480999997002,
+    "p50_ms": 204.15309999953024,
+    "max_ms": 232.31700000178535,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 98.15410000010161,
+        "meta": {
+          "verified_bytes": 4096,
+          "parallel_streams": 4,
+          "alpn": "prior-knowledge"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 232.31700000178535,
+        "meta": {
+          "verified_bytes": 4096,
+          "parallel_streams": 4,
+          "alpn": "prior-knowledge"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 223.94029999850318,
+        "meta": {
+          "verified_bytes": 4096,
+          "parallel_streams": 4,
+          "alpn": "prior-knowledge"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 204.15309999953024,
+        "meta": {
+          "verified_bytes": 4096,
+          "parallel_streams": 4,
+          "alpn": "prior-knowledge"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 157.52659999998286,
+        "meta": {
+          "verified_bytes": 4096,
+          "parallel_streams": 4,
+          "alpn": "prior-knowledge"
+        }
+      }
+    ]
+  },
+  {
+    "tool": "openssh",
+    "case": "HTTP2-TLS-4streams",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 1.8905468999982986,
+    "p50_ms": 323.23189999806345,
+    "max_ms": 360.1353999983985,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 360.1353999983985,
+        "meta": {
+          "verified_bytes": 4096,
+          "parallel_streams": 4,
+          "alpn": "h2"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 334.3606999987969,
+        "meta": {
+          "verified_bytes": 4096,
+          "parallel_streams": 4,
+          "alpn": "h2"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 311.8839000017033,
+        "meta": {
+          "verified_bytes": 4096,
+          "parallel_streams": 4,
+          "alpn": "h2"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 309.017200001108,
+        "meta": {
+          "verified_bytes": 4096,
+          "parallel_streams": 4,
+          "alpn": "h2"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 323.23189999806345,
+        "meta": {
+          "verified_bytes": 4096,
+          "parallel_streams": 4,
+          "alpn": "h2"
+        }
+      }
+    ]
+  },
+  {
+    "tool": "openssh",
+    "case": "gRPC-unary-64B",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 1.5055376999989676,
+    "p50_ms": 244.49660000027507,
+    "max_ms": 292.2906999992847,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 244.49660000027507,
+        "meta": {
+          "verified_bytes": 64,
+          "messages": 1,
+          "tls": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 292.2906999992847,
+        "meta": {
+          "verified_bytes": 64,
+          "messages": 1,
+          "tls": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 239.89489999803482,
+        "meta": {
+          "verified_bytes": 64,
+          "messages": 1,
+          "tls": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 221.7627000027278,
+        "meta": {
+          "verified_bytes": 64,
+          "messages": 1,
+          "tls": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 254.75949999963632,
+        "meta": {
+          "verified_bytes": 64,
+          "messages": 1,
+          "tls": false
+        }
+      }
+    ]
+  },
+  {
+    "tool": "openssh",
+    "case": "gRPC-unary-64KiB",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 2.245689499999571,
+    "p50_ms": 425.71590000079595,
+    "max_ms": 445.64879999961704,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 445.64879999961704,
+        "meta": {
+          "verified_bytes": 65536,
+          "messages": 1,
+          "tls": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 432.72000000069966,
+        "meta": {
+          "verified_bytes": 65536,
+          "messages": 1,
+          "tls": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 312.01230000078795,
+        "meta": {
+          "verified_bytes": 65536,
+          "messages": 1,
+          "tls": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 377.3938999984239,
+        "meta": {
+          "verified_bytes": 65536,
+          "messages": 1,
+          "tls": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 425.71590000079595,
+        "meta": {
+          "verified_bytes": 65536,
+          "messages": 1,
+          "tls": false
+        }
+      }
+    ]
+  },
+  {
+    "tool": "openssh",
+    "case": "gRPC-bidirectional",
+    "repeat": 1,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 1.9251452999997127,
+    "p50_ms": 353.7945000025502,
+    "max_ms": 366.60159999883035,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 344.5380000011937,
+        "meta": {
+          "verified_bytes": 192,
+          "messages": 3,
+          "tls": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 361.4618999999948,
+        "meta": {
+          "verified_bytes": 192,
+          "messages": 3,
+          "tls": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 366.60159999883035,
+        "meta": {
+          "verified_bytes": 192,
+          "messages": 3,
+          "tls": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 353.7945000025502,
+        "meta": {
+          "verified_bytes": 192,
+          "messages": 3,
+          "tls": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 245.91520000103628,
+        "meta": {
+          "verified_bytes": 192,
+          "messages": 3,
+          "tls": false
+        }
+      }
+    ]
+  }
+]

@@ -1,0 +1,449 @@
+{
+  "schema_version": 1,
+  "test_date": "2026-10-31",
+  "source_baseline_commit": "0d3312a",
+  "tested_jar_sha256": "f68d57f872ddf0d8816142a63de10d2e6587b44835ae10fbc5f0aac5221cfe1f",
+  "data_policy": "Original measurement bytes; auth token placeholders in archived TOML; no private keys. Preflight and retest data are separately identified.",
+  "files": [
+    {
+      "path": "20261031-protocols/README.md",
+      "bytes": 2494,
+      "sha256": "4aade345c7b3c44e4e5e5b7f9ce06a160f9a135a388251904d4f0b106579dcfa"
+    },
+    {
+      "path": "20261031-protocols/cert.pem",
+      "bytes": 1176,
+      "sha256": "e5176853013584fe3ae7cd4ee6392abc9d00ce2d1e85f05a6069ef2302a8659a"
+    },
+    {
+      "path": "20261031-protocols/cleanup-health.txt",
+      "bytes": 2706,
+      "sha256": "508863799cb2a502c1a413d2ecd8254d93545f3d2e72d8f9ed11b86ca0ed8c98"
+    },
+    {
+      "path": "20261031-protocols/cleanup_remote.py",
+      "bytes": 250,
+      "sha256": "9c83ad417c641515361c2878ccd14a655f9db224d028e6db7c08cddb26e3586c"
+    },
+    {
+      "path": "20261031-protocols/client.properties",
+      "bytes": 197,
+      "sha256": "f70e3cd6e77ccf9f17a3824244d400b3eae7bf84c27f2024f8ab7d34bb226448"
+    },
+    {
+      "path": "20261031-protocols/common.log",
+      "bytes": 214656,
+      "sha256": "1f3085a4797430e5d91a388d3a081f65dd9716e81f8f113263c870c8e6d98580"
+    },
+    {
+      "path": "20261031-protocols/configuration-retests-monitor.json",
+      "bytes": 13346,
+      "sha256": "fe8e2ccb03450196a40488ed0dab83c6872884c103cee8c391707cf88f17fac9"
+    },
+    {
+      "path": "20261031-protocols/configuration-retests.json",
+      "bytes": 26950,
+      "sha256": "32293d18ee47019bb79508501ee4a0f8f09920c0f26164f638de0928f313ca71"
+    },
+    {
+      "path": "20261031-protocols/configuration-retests.log",
+      "bytes": 12114,
+      "sha256": "a9730937f6c850fcfa782e79a6da21b1eea08be3102f79ea9a441ea43f0c49ed"
+    },
+    {
+      "path": "20261031-protocols/environment.json",
+      "bytes": 1007,
+      "sha256": "2cbbaa332424be15cf816c02e73ff14c5f07189726e7d302ed6bc7bd240702ba"
+    },
+    {
+      "path": "20261031-protocols/extra.log",
+      "bytes": 26272,
+      "sha256": "52f15be23c1c99ce11f84b4a816b4583a6b86328955d2f146ca5d8f7088eac6a"
+    },
+    {
+      "path": "20261031-protocols/fixture-control.json",
+      "bytes": 22024,
+      "sha256": "7d613693388b12b0aee3c6f8d87e80d04be75d964e788cbe9458da9cfb31fe7a"
+    },
+    {
+      "path": "20261031-protocols/fixture-control.log",
+      "bytes": 11078,
+      "sha256": "fd1e6ada068ab7968c29ea52c73a9d627f4aca9162df87c7c53acb59ffddedbb"
+    },
+    {
+      "path": "20261031-protocols/fixture_control.py",
+      "bytes": 735,
+      "sha256": "f2a5cc087c8353038caebea648c277caaa6cd1af930fc998dd04a6e1709d4f2d"
+    },
+    {
+      "path": "20261031-protocols/frp-client.log",
+      "bytes": 9157,
+      "sha256": "dbc865aa3fb7c4f94bc31b4594a43d7d90e333e15bda0e5ab2da96591370a975"
+    },
+    {
+      "path": "20261031-protocols/frp-underlay.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "20261031-protocols/frpc.toml",
+      "bytes": 329,
+      "sha256": "7b6107c83a3c133c7762400330170b7a2d564366a1b34fa4d731a54a075751b1"
+    },
+    {
+      "path": "20261031-protocols/frps.toml",
+      "bytes": 250,
+      "sha256": "a4660d118d5ad97ad098020878a37b0b277da8449b6f2089d1d5d73b2ad3a88f"
+    },
+    {
+      "path": "20261031-protocols/halfclose-control.json",
+      "bytes": 395,
+      "sha256": "56d8d8d2da78423fde908d12b30584a3b0916b0c6a95588880c2b1c463bc7d24"
+    },
+    {
+      "path": "20261031-protocols/halfclose_control.py",
+      "bytes": 758,
+      "sha256": "5e7b5323a68a4e3ce511b1a48b2baa80eab2259162ae027f0586cc08cdce08a6"
+    },
+    {
+      "path": "20261031-protocols/harness-preflight-monitor.json",
+      "bytes": 12546,
+      "sha256": "1502a233ebe06029aee690018e1b89a20f3ad663dba700dfaaf2adcb1e8c23fc"
+    },
+    {
+      "path": "20261031-protocols/harness-preflight-results.json",
+      "bytes": 58517,
+      "sha256": "14817bb8422276f327ac12592857b60ff49763473e4d76678a46b5025fdf6085"
+    },
+    {
+      "path": "20261031-protocols/java-client.log",
+      "bytes": 32865,
+      "sha256": "0f511bd6f19a0b118f09992ef85eb7202e0e321cbaad56b64db5ea0d89250d2c"
+    },
+    {
+      "path": "20261031-protocols/java-underlay.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "20261031-protocols/local-jvm-cleanup.json",
+      "bytes": 885,
+      "sha256": "14ef832128d16c68489d5db9fc08613e3110974a0c7254da67991b3b0886e35d"
+    },
+    {
+      "path": "20261031-protocols/monitor.json",
+      "bytes": 73773,
+      "sha256": "dd283e85feac3fb168858d64783f4c696237acdcd8840b2a05df3f10cf505d66"
+    },
+    {
+      "path": "20261031-protocols/openssh-client.log",
+      "bytes": 134,
+      "sha256": "a9fb8390688f4b6a6275c6ea63da5507d8d05c884a6146954dd635f93b27089c"
+    },
+    {
+      "path": "20261031-protocols/openssh-underlay.log",
+      "bytes": 26522,
+      "sha256": "b61a508bdc8434a539e7ae7a2471c92f99b5d13feecc6dab8d5f78a552a0cec0"
+    },
+    {
+      "path": "20261031-protocols/origins.py",
+      "bytes": 7955,
+      "sha256": "b57b78390a5701e2cf496c1d7ef36b66b2cae5ff8798fb614161689f72f07845"
+    },
+    {
+      "path": "20261031-protocols/remote-service-journal.txt",
+      "bytes": 223114,
+      "sha256": "1766d26068999e8f15b318fd5ed7710f8ff1dbd918f16cb165c348b5f9067d01"
+    },
+    {
+      "path": "20261031-protocols/report.py",
+      "bytes": 16337,
+      "sha256": "94bf2eb2496aa3a598bfb1439aad3fd4f2fceba2eabb713a54e76179ace7784c"
+    },
+    {
+      "path": "20261031-protocols/requirements.txt",
+      "bytes": 219,
+      "sha256": "775a8625d72e17ab58fd0fe387244e1ac5baf76e7326d2f94d447de2f07141ac"
+    },
+    {
+      "path": "20261031-protocols/results.json",
+      "bytes": 264304,
+      "sha256": "b3fa0bee9ed3fa0cf6d18f2c799ca250648f5da02d498f1a224983e39403a2bf"
+    },
+    {
+      "path": "20261031-protocols/retest_ws.py",
+      "bytes": 557,
+      "sha256": "ef5c91930adf2a55040197a8ff50b9444aed2914a3d5e078b86f3d99ab64825c"
+    },
+    {
+      "path": "20261031-protocols/retests.py",
+      "bytes": 1043,
+      "sha256": "5a0baf64cb69b5d5e967c42a8990f02a5f246775ca298f333f957ca59c11bd87"
+    },
+    {
+      "path": "20261031-protocols/route-readiness.json",
+      "bytes": 789,
+      "sha256": "8b1011a32397ef52464038e8e898d2e806a88973c591ec5ab649fe0be10c3b91"
+    },
+    {
+      "path": "20261031-protocols/server.properties",
+      "bytes": 255,
+      "sha256": "9cf0883967abee5f67a945cae6c461765a825e053af73ce7b58af0a4fe0892e8"
+    },
+    {
+      "path": "20261031-protocols/suite.py",
+      "bytes": 18176,
+      "sha256": "7c78be83ccbdbdd955163c68501f7f16a56ce6a5e66b06c4cbe7b2e58a7aa038"
+    },
+    {
+      "path": "20261031-protocols/udp-empty-reference.json",
+      "bytes": 177,
+      "sha256": "1a99a33b956fe3fc981ba5200f080fb82d1f32a6de994f97146c98d07e956946"
+    },
+    {
+      "path": "20261031-protocols/udp-empty-reference.log",
+      "bytes": 1024,
+      "sha256": "36659743d95c2ab0d1f50ecf2bea6eaed0262879c0ff5b1b53b5e18916d5f4f6"
+    },
+    {
+      "path": "20261031-protocols/udp-fixture-control.json",
+      "bytes": 391,
+      "sha256": "1c518d6ae3f77631fc3f03d0c29154cda032c93d73cb6060aa33a32474af2b9d"
+    },
+    {
+      "path": "20261031-protocols/udp-isolated.json",
+      "bytes": 853,
+      "sha256": "05e09240a03f232db9fe1b9f3fdbe507c56f48e6421c4fde4c82eae96c827c89"
+    },
+    {
+      "path": "20261031-protocols/udp-isolated.log",
+      "bytes": 2138,
+      "sha256": "fb00f7e01665887df7afee35c70e75ec5cca62fb1f78f66c7c305fc0b3b373ca"
+    },
+    {
+      "path": "20261031-protocols/udp-reference.json",
+      "bytes": 176,
+      "sha256": "9ca53d32279e20c4e4562ab19a96b8536a3b69fc270d53df3700bb3b2faf48e5"
+    },
+    {
+      "path": "20261031-protocols/udp_empty_control.py",
+      "bytes": 718,
+      "sha256": "21aa841d798cfa9f58321a9c1848f0ec751eb775883a49922ca3eb961aa5bc94"
+    },
+    {
+      "path": "20261031-protocols/udp_fixture_control.py",
+      "bytes": 513,
+      "sha256": "6b890a78c48a4e76207d7d5e9f14a43e0028a0117f6b5322281b5a8ee351a3d7"
+    },
+    {
+      "path": "20261031-protocols/udp_isolated.py",
+      "bytes": 1134,
+      "sha256": "e6724f92215afc8c306ff041e52707278fe6cf630e437944749e5af49b0d79b8"
+    },
+    {
+      "path": "20261031-protocols/udp_reference.py",
+      "bytes": 141,
+      "sha256": "edb303fab72151d33d1c5603d9b3ac2d9b7acd03c4c133e99b07ebe8fad5e5f8"
+    },
+    {
+      "path": "20261031-protocols/udp_remote_probe.py",
+      "bytes": 941,
+      "sha256": "98220b527b2a037c8b81685a7e4859f78a008a958ff30691cd341e74033f47b9"
+    },
+    {
+      "path": "20261031-protocols/validate_results.py",
+      "bytes": 2155,
+      "sha256": "e8d75e7c45e3f35253815a1e2b092554a299063dae90fe8036150850c70c59ee"
+    },
+    {
+      "path": "20261031-protocols/validation.json",
+      "bytes": 339,
+      "sha256": "ef682d5f429ae675c0aaf4eabed039e367bd9a3b83e26c42f96068b7d8a49f17"
+    },
+    {
+      "path": "20261031-protocols/ws-phases.json",
+      "bytes": 5065,
+      "sha256": "904e5f2de7e9ec55b3d6e8168db5bae80fc1769a405a04effc790586a77fd1f0"
+    },
+    {
+      "path": "20261031-protocols/ws-phases.log",
+      "bytes": 11466,
+      "sha256": "c66596c25d68d072e7dda74f76e7ee8f54b234e4489480ed3e76e662f627e748"
+    },
+    {
+      "path": "20261031-protocols/ws-retest-monitor.json",
+      "bytes": 4100,
+      "sha256": "80f1cf65064774acc35589040cbe2c01b04786c69aa7ea43f686a1fe8027a0e5"
+    },
+    {
+      "path": "20261031-protocols/ws-retest.json",
+      "bytes": 3199,
+      "sha256": "82e134b464480b542da632d4701e2a8cadf907e396b1f381261444abe61b7609"
+    },
+    {
+      "path": "20261031-protocols/ws-retest.log",
+      "bytes": 1142,
+      "sha256": "f686a3aad01f26c298f3aef01b8ce648a5203be2b18b190d9003a8b50cc72949"
+    },
+    {
+      "path": "20261031-protocols/ws_phases.py",
+      "bytes": 1604,
+      "sha256": "5af627c3345b1f878027f1ae1110a3e3192050ea37d4e51640071007e88e8ea0"
+    },
+    {
+      "path": "20261031-protocols/多协议测试报告.md",
+      "bytes": 16314,
+      "sha256": "73712f37446d8920ecf79db6a324f6615a5b766b35320f9280f564bc3e277edb"
+    },
+    {
+      "path": "20261031/cert.pem",
+      "bytes": 1151,
+      "sha256": "5a8284ef2081e69b070b90a286cded70430d2d381dbf416f651650db3c749524"
+    },
+    {
+      "path": "20261031/cleanup-health.txt",
+      "bytes": 1918,
+      "sha256": "6b84cabd36216defdccb91019329e8ec36c9ad19b000e2f5a94018edd4e7d9f7"
+    },
+    {
+      "path": "20261031/cleanup_remote.py",
+      "bytes": 520,
+      "sha256": "bfc3a3c44ca1eba72f771dc650a5a734c7213bc10b1b8289e8a289828c851638"
+    },
+    {
+      "path": "20261031/client.properties",
+      "bytes": 192,
+      "sha256": "0543c453ae1f48c3dd3c30dce3ff836f4e01f6f258f6771413d842c46c0e9833"
+    },
+    {
+      "path": "20261031/comparators.log",
+      "bytes": 21564,
+      "sha256": "c5cac705d3ff61572722b50068e1d552c687c07a5503a2b5cba9e04c47e4f016"
+    },
+    {
+      "path": "20261031/direct-results.json",
+      "bytes": 2227,
+      "sha256": "a365382f0df97ad9aa4a9513a2ba06384284dde0591fb0c348e7bfaa6ed33ef3"
+    },
+    {
+      "path": "20261031/direct.log",
+      "bytes": 784,
+      "sha256": "757333027d9503971475029eecb270a52c6a295059ca04cef0a3f1ad55b4e5b7"
+    },
+    {
+      "path": "20261031/direct_origin.py",
+      "bytes": 451,
+      "sha256": "7f7d130725a7b2d89e693ed2e0080bd1d759e41a4a7c8b57feee042649e5c142"
+    },
+    {
+      "path": "20261031/environment.json",
+      "bytes": 4401,
+      "sha256": "2881a0927054d9b58870fc2e1f3ecd87c527bc3a5c2b35218b71f2808ea6eacd"
+    },
+    {
+      "path": "20261031/final-health.json",
+      "bytes": 985,
+      "sha256": "2b1e5211af268b68dbd59407a2cf69d64929cd826169942a7b6f70f20598c63c"
+    },
+    {
+      "path": "20261031/frp-client.log",
+      "bytes": 580,
+      "sha256": "31d7189d95aff0b68424ff9fe33194bc3e4c8f437a4c25a139f2939e1961e82b"
+    },
+    {
+      "path": "20261031/frp-ssh.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "20261031/frpc.toml",
+      "bytes": 355,
+      "sha256": "97f3fc370c596d224f8bf92905c676f2a2b9d04a4fc5d871daf8e2cef5f552f8"
+    },
+    {
+      "path": "20261031/frps.toml",
+      "bytes": 270,
+      "sha256": "5dc8ee863bad1515ec1400500a51337d186dcdcc5580c7a72548024e39940d36"
+    },
+    {
+      "path": "20261031/java-client.log",
+      "bytes": 26905,
+      "sha256": "d386657a075f42be07580dab62cf29ae2658be13944de08bf826ebe31af31446"
+    },
+    {
+      "path": "20261031/java-ssh.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "20261031/make_report.py",
+      "bytes": 15247,
+      "sha256": "8818e6d2a3f16eb6f364aba6046850abacc1c37b0cefc9a4e1cdc7071b433cb2"
+    },
+    {
+      "path": "20261031/monitor.json",
+      "bytes": 31190,
+      "sha256": "745efbb46a6560675b848bf267902166a71f02b5b9f9f7aa118742ffa02cbd92"
+    },
+    {
+      "path": "20261031/openssh-client.log",
+      "bytes": 86,
+      "sha256": "2d4738312fa82d011245fed19587d13da8dd7fe6a57d7353853e522b90b964b1"
+    },
+    {
+      "path": "20261031/openssh-ssh.log",
+      "bytes": 4140,
+      "sha256": "1d4b504019674a1b1c2601f60df711e846b3c3a334fd61929e30144f483e77f4"
+    },
+    {
+      "path": "20261031/results.json",
+      "bytes": 114444,
+      "sha256": "2a4bd20c544a56e336b8ee5b28997b38c43d43b20b50205a04479eeabe536694"
+    },
+    {
+      "path": "20261031/run.log",
+      "bytes": 14846,
+      "sha256": "e87cb26a26748d08407c8941b2632bc2c4b35c426a1ae1447fecb47c1414d6f6"
+    },
+    {
+      "path": "20261031/run_direct.py",
+      "bytes": 1094,
+      "sha256": "bec0b328267e2365eed305bed559b9d45606d010b05bbcbe6892c38a10bc8ccf"
+    },
+    {
+      "path": "20261031/run_wan.py",
+      "bytes": 7121,
+      "sha256": "acf077541e51ae9cbbcc380773648f3e24977a096eda53d3e44c914dcaa582a4"
+    },
+    {
+      "path": "20261031/server.properties",
+      "bytes": 255,
+      "sha256": "9cf0883967abee5f67a945cae6c461765a825e053af73ce7b58af0a4fe0892e8"
+    },
+    {
+      "path": "20261031/tunnel-current.jar",
+      "bytes": 2768826,
+      "sha256": "f68d57f872ddf0d8816142a63de10d2e6587b44835ae10fbc5f0aac5221cfe1f"
+    },
+    {
+      "path": "20261031/性能比较报告.md",
+      "bytes": 13391,
+      "sha256": "9c88e91bcb82499d614004eb40002f0748c782633a28de91ab2a7d9966afc67c"
+    },
+    {
+      "path": "20261031/最终结论.md",
+      "bytes": 5025,
+      "sha256": "c597bd5a5a1a4e448033d1961dad60077713da976d915ea458b2b312af96237e"
+    },
+    {
+      "path": "README.md",
+      "bytes": 5138,
+      "sha256": "74d6dbaf115f5d1a4899c752c3042ee6b8f0723a9d4216e5ac06e4a796bed5b1"
+    },
+    {
+      "path": "archive_evidence.py",
+      "bytes": 3423,
+      "sha256": "7758f219ddc373470b59a4843490e7ce25f6bada72acc1f28b32c67ad7c37e8e"
+    }
+  ]
+}

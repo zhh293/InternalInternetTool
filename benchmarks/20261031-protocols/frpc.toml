@@ -1,0 +1,14 @@
+serverAddr="127.0.0.1"
+serverPort=17000
+auth.method="token"
+auth.token="REPLACE_WITH_FRESH_TEST_TOKEN"
+transport.tls.enable=true
+transport.tls.trustedCaFile="cert.pem"
+transport.tls.serverName="localhost"
+transport.tcpMux=true
+[[proxies]]
+name="bench"
+type="tcp"
+localIP="127.0.0.1"
+localPort=19091
+remotePort=9090

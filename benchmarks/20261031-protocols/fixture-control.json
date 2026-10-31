@@ -1,0 +1,1031 @@
+[
+  {
+    "tool": "fixture-control",
+    "case": "TCP-64B",
+    "repeat": 0,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 0.3435938999973587,
+    "p50_ms": 17.09869999831426,
+    "max_ms": 31.539100000372855,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 15.632899998308858,
+        "meta": {
+          "verified_bytes": 64,
+          "half_close": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 17.09869999831426,
+        "meta": {
+          "verified_bytes": 64,
+          "half_close": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 23.18100000047707,
+        "meta": {
+          "verified_bytes": 64,
+          "half_close": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 4.799900001671631,
+        "meta": {
+          "verified_bytes": 64,
+          "half_close": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 31.539100000372855,
+        "meta": {
+          "verified_bytes": 64,
+          "half_close": false
+        }
+      }
+    ]
+  },
+  {
+    "tool": "fixture-control",
+    "case": "TCP-64KiB",
+    "repeat": 0,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 0.37753629999861005,
+    "p50_ms": 21.57739999893238,
+    "max_ms": 53.842000001168344,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 53.842000001168344,
+        "meta": {
+          "verified_bytes": 65536,
+          "half_close": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 21.57739999893238,
+        "meta": {
+          "verified_bytes": 65536,
+          "half_close": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 20.31139999962761,
+        "meta": {
+          "verified_bytes": 65536,
+          "half_close": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 26.020000001153676,
+        "meta": {
+          "verified_bytes": 65536,
+          "half_close": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 3.875099999277154,
+        "meta": {
+          "verified_bytes": 65536,
+          "half_close": false
+        }
+      }
+    ]
+  },
+  {
+    "tool": "fixture-control",
+    "case": "TCP-half-close",
+    "repeat": 0,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 0.28795700000046054,
+    "p50_ms": 3.341999999975087,
+    "max_ms": 23.61889999883715,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 23.61889999883715,
+        "meta": {
+          "verified_bytes": 64,
+          "half_close": true
+        }
+      },
+      {
+        "ok": true,
+        "ms": 3.433599998970749,
+        "meta": {
+          "verified_bytes": 64,
+          "half_close": true
+        }
+      },
+      {
+        "ok": true,
+        "ms": 3.0670999985886738,
+        "meta": {
+          "verified_bytes": 64,
+          "half_close": true
+        }
+      },
+      {
+        "ok": true,
+        "ms": 2.842500001861481,
+        "meta": {
+          "verified_bytes": 64,
+          "half_close": true
+        }
+      },
+      {
+        "ok": true,
+        "ms": 3.341999999975087,
+        "meta": {
+          "verified_bytes": 64,
+          "half_close": true
+        }
+      }
+    ]
+  },
+  {
+    "tool": "fixture-control",
+    "case": "HTTP1-GET",
+    "repeat": 0,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 0.3239599000007729,
+    "p50_ms": 16.3217999979679,
+    "max_ms": 18.581099997390993,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 12.834699999075383,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": null
+        }
+      },
+      {
+        "ok": true,
+        "ms": 6.08500000089407,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": null
+        }
+      },
+      {
+        "ok": true,
+        "ms": 18.578899998829,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": null
+        }
+      },
+      {
+        "ok": true,
+        "ms": 18.581099997390993,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": null
+        }
+      },
+      {
+        "ok": true,
+        "ms": 16.3217999979679,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": null
+        }
+      }
+    ]
+  },
+  {
+    "tool": "fixture-control",
+    "case": "HTTP1-POST-64KiB",
+    "repeat": 0,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 0.3655268000002252,
+    "p50_ms": 19.069799996941583,
+    "max_ms": 33.93800000048941,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 15.763999999762746,
+        "meta": {
+          "verified_bytes": 65536,
+          "status": 200,
+          "tls": null
+        }
+      },
+      {
+        "ok": true,
+        "ms": 19.069799996941583,
+        "meta": {
+          "verified_bytes": 65536,
+          "status": 200,
+          "tls": null
+        }
+      },
+      {
+        "ok": true,
+        "ms": 14.951599998312304,
+        "meta": {
+          "verified_bytes": 65536,
+          "status": 200,
+          "tls": null
+        }
+      },
+      {
+        "ok": true,
+        "ms": 29.894299997977214,
+        "meta": {
+          "verified_bytes": 65536,
+          "status": 200,
+          "tls": null
+        }
+      },
+      {
+        "ok": true,
+        "ms": 33.93800000048941,
+        "meta": {
+          "verified_bytes": 65536,
+          "status": 200,
+          "tls": null
+        }
+      }
+    ]
+  },
+  {
+    "tool": "fixture-control",
+    "case": "SSE",
+    "repeat": 0,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 0.44439260000217473,
+    "p50_ms": 40.41320000033011,
+    "max_ms": 46.00180000124965,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 40.41320000033011,
+        "meta": {
+          "verified_bytes": 27,
+          "status": 200,
+          "tls": null
+        }
+      },
+      {
+        "ok": true,
+        "ms": 46.00180000124965,
+        "meta": {
+          "verified_bytes": 27,
+          "status": 200,
+          "tls": null
+        }
+      },
+      {
+        "ok": true,
+        "ms": 41.551199999958044,
+        "meta": {
+          "verified_bytes": 27,
+          "status": 200,
+          "tls": null
+        }
+      },
+      {
+        "ok": true,
+        "ms": 32.052300000941614,
+        "meta": {
+          "verified_bytes": 27,
+          "status": 200,
+          "tls": null
+        }
+      },
+      {
+        "ok": true,
+        "ms": 32.119999999849824,
+        "meta": {
+          "verified_bytes": 27,
+          "status": 200,
+          "tls": null
+        }
+      }
+    ]
+  },
+  {
+    "tool": "fixture-control",
+    "case": "HTTPS-TLS1.2",
+    "repeat": 0,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 0.3359893999986525,
+    "p50_ms": 9.265100001357496,
+    "max_ms": 32.62890000041807,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 9.265100001357496,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": "TLSv1.2"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 26.20329999990645,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": "TLSv1.2"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 32.62890000041807,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": "TLSv1.2"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 9.192499997880077,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": "TLSv1.2"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 6.23759999871254,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": "TLSv1.2"
+        }
+      }
+    ]
+  },
+  {
+    "tool": "fixture-control",
+    "case": "HTTPS-TLS1.3",
+    "repeat": 0,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 0.3533501999991131,
+    "p50_ms": 23.390299997117836,
+    "max_ms": 32.981199998175725,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 23.390299997117836,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": "TLSv1.3"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 6.3033000005816575,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": "TLSv1.3"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 8.989099998871097,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": "TLSv1.3"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 32.981199998175725,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": "TLSv1.3"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 30.15199999936158,
+        "meta": {
+          "verified_bytes": 64,
+          "status": 200,
+          "tls": "TLSv1.3"
+        }
+      }
+    ]
+  },
+  {
+    "tool": "fixture-control",
+    "case": "WebSocket-64B",
+    "repeat": 0,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 0.33248599999933504,
+    "p50_ms": 13.915600000473205,
+    "max_ms": 25.805899997067172,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 11.883399998623645,
+        "meta": {
+          "verified_bytes": 64,
+          "ping_pong": true,
+          "binary": true
+        }
+      },
+      {
+        "ok": true,
+        "ms": 20.107300002564443,
+        "meta": {
+          "verified_bytes": 64,
+          "ping_pong": true,
+          "binary": true
+        }
+      },
+      {
+        "ok": true,
+        "ms": 13.915600000473205,
+        "meta": {
+          "verified_bytes": 64,
+          "ping_pong": true,
+          "binary": true
+        }
+      },
+      {
+        "ok": true,
+        "ms": 8.720999998331536,
+        "meta": {
+          "verified_bytes": 64,
+          "ping_pong": true,
+          "binary": true
+        }
+      },
+      {
+        "ok": true,
+        "ms": 25.805899997067172,
+        "meta": {
+          "verified_bytes": 64,
+          "ping_pong": true,
+          "binary": true
+        }
+      }
+    ]
+  },
+  {
+    "tool": "fixture-control",
+    "case": "WebSocket-64KiB",
+    "repeat": 0,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 0.3487922999993316,
+    "p50_ms": 17.002399999910267,
+    "max_ms": 29.081000000587665,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 22.442499997850973,
+        "meta": {
+          "verified_bytes": 65536,
+          "ping_pong": true,
+          "binary": true
+        }
+      },
+      {
+        "ok": true,
+        "ms": 17.002399999910267,
+        "meta": {
+          "verified_bytes": 65536,
+          "ping_pong": true,
+          "binary": true
+        }
+      },
+      {
+        "ok": true,
+        "ms": 12.609400000656024,
+        "meta": {
+          "verified_bytes": 65536,
+          "ping_pong": true,
+          "binary": true
+        }
+      },
+      {
+        "ok": true,
+        "ms": 29.081000000587665,
+        "meta": {
+          "verified_bytes": 65536,
+          "ping_pong": true,
+          "binary": true
+        }
+      },
+      {
+        "ok": true,
+        "ms": 13.570200000685873,
+        "meta": {
+          "verified_bytes": 65536,
+          "ping_pong": true,
+          "binary": true
+        }
+      }
+    ]
+  },
+  {
+    "tool": "fixture-control",
+    "case": "WSS",
+    "repeat": 0,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 0.4023684999992838,
+    "p50_ms": 25.616499999159714,
+    "max_ms": 41.836299998976756,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 41.836299998976756,
+        "meta": {
+          "verified_bytes": 64,
+          "ping_pong": true,
+          "binary": true
+        }
+      },
+      {
+        "ok": true,
+        "ms": 25.616499999159714,
+        "meta": {
+          "verified_bytes": 64,
+          "ping_pong": true,
+          "binary": true
+        }
+      },
+      {
+        "ok": true,
+        "ms": 21.365299999160925,
+        "meta": {
+          "verified_bytes": 64,
+          "ping_pong": true,
+          "binary": true
+        }
+      },
+      {
+        "ok": true,
+        "ms": 35.671800000272924,
+        "meta": {
+          "verified_bytes": 64,
+          "ping_pong": true,
+          "binary": true
+        }
+      },
+      {
+        "ok": true,
+        "ms": 25.32219999920926,
+        "meta": {
+          "verified_bytes": 64,
+          "ping_pong": true,
+          "binary": true
+        }
+      }
+    ]
+  },
+  {
+    "tool": "fixture-control",
+    "case": "HTTP2-h2c-4streams",
+    "repeat": 0,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 0.3289407000011124,
+    "p50_ms": 10.17179999689688,
+    "max_ms": 27.783900000940775,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 27.783900000940775,
+        "meta": {
+          "verified_bytes": 4096,
+          "parallel_streams": 4,
+          "alpn": "prior-knowledge"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 22.218699999939417,
+        "meta": {
+          "verified_bytes": 4096,
+          "parallel_streams": 4,
+          "alpn": "prior-knowledge"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 10.17179999689688,
+        "meta": {
+          "verified_bytes": 4096,
+          "parallel_streams": 4,
+          "alpn": "prior-knowledge"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 9.394499997142702,
+        "meta": {
+          "verified_bytes": 4096,
+          "parallel_streams": 4,
+          "alpn": "prior-knowledge"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 7.022000001597917,
+        "meta": {
+          "verified_bytes": 4096,
+          "parallel_streams": 4,
+          "alpn": "prior-knowledge"
+        }
+      }
+    ]
+  },
+  {
+    "tool": "fixture-control",
+    "case": "HTTP2-TLS-4streams",
+    "repeat": 0,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 0.32323490000271704,
+    "p50_ms": 13.240699998277705,
+    "max_ms": 18.52810000127647,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 11.932699999306351,
+        "meta": {
+          "verified_bytes": 4096,
+          "parallel_streams": 4,
+          "alpn": "h2"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 12.391799999022624,
+        "meta": {
+          "verified_bytes": 4096,
+          "parallel_streams": 4,
+          "alpn": "h2"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 13.240699998277705,
+        "meta": {
+          "verified_bytes": 4096,
+          "parallel_streams": 4,
+          "alpn": "h2"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 18.52810000127647,
+        "meta": {
+          "verified_bytes": 4096,
+          "parallel_streams": 4,
+          "alpn": "h2"
+        }
+      },
+      {
+        "ok": true,
+        "ms": 15.504700000747107,
+        "meta": {
+          "verified_bytes": 4096,
+          "parallel_streams": 4,
+          "alpn": "h2"
+        }
+      }
+    ]
+  },
+  {
+    "tool": "fixture-control",
+    "case": "gRPC-unary-64B",
+    "repeat": 0,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 0.33429249999971944,
+    "p50_ms": 20.56789999915054,
+    "max_ms": 24.670700000569923,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 24.670700000569923,
+        "meta": {
+          "verified_bytes": 64,
+          "messages": 1,
+          "tls": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 20.56789999915054,
+        "meta": {
+          "verified_bytes": 64,
+          "messages": 1,
+          "tls": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 5.38060000326368,
+        "meta": {
+          "verified_bytes": 64,
+          "messages": 1,
+          "tls": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 23.049700001138262,
+        "meta": {
+          "verified_bytes": 64,
+          "messages": 1,
+          "tls": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 8.108499998343177,
+        "meta": {
+          "verified_bytes": 64,
+          "messages": 1,
+          "tls": false
+        }
+      }
+    ]
+  },
+  {
+    "tool": "fixture-control",
+    "case": "gRPC-unary-64KiB",
+    "repeat": 0,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 0.33483889999843086,
+    "p50_ms": 12.839600000006612,
+    "max_ms": 25.843999999779044,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 25.843999999779044,
+        "meta": {
+          "verified_bytes": 65536,
+          "messages": 1,
+          "tls": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 7.6559999979508575,
+        "meta": {
+          "verified_bytes": 65536,
+          "messages": 1,
+          "tls": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 24.113699997542426,
+        "meta": {
+          "verified_bytes": 65536,
+          "messages": 1,
+          "tls": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 12.159999998402782,
+        "meta": {
+          "verified_bytes": 65536,
+          "messages": 1,
+          "tls": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 12.839600000006612,
+        "meta": {
+          "verified_bytes": 65536,
+          "messages": 1,
+          "tls": false
+        }
+      }
+    ]
+  },
+  {
+    "tool": "fixture-control",
+    "case": "gRPC-bidirectional",
+    "repeat": 0,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 0.33083520000218414,
+    "p50_ms": 12.762900001689559,
+    "max_ms": 29.944300000352086,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 14.946399998734705,
+        "meta": {
+          "verified_bytes": 192,
+          "messages": 3,
+          "tls": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 10.891199999605305,
+        "meta": {
+          "verified_bytes": 192,
+          "messages": 3,
+          "tls": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 10.39140000284533,
+        "meta": {
+          "verified_bytes": 192,
+          "messages": 3,
+          "tls": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 12.762900001689559,
+        "meta": {
+          "verified_bytes": 192,
+          "messages": 3,
+          "tls": false
+        }
+      },
+      {
+        "ok": true,
+        "ms": 29.944300000352086,
+        "meta": {
+          "verified_bytes": 192,
+          "messages": 3,
+          "tls": false
+        }
+      }
+    ]
+  },
+  {
+    "tool": "fixture-control",
+    "case": "gRPC-TLS",
+    "repeat": 0,
+    "attempts": 5,
+    "errors": 0,
+    "seconds": 0.4067728000009083,
+    "p50_ms": 24.526799999875948,
+    "max_ms": 42.291100002330495,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 21.563900001638103,
+        "meta": {
+          "verified_bytes": 64,
+          "messages": 1,
+          "tls": true
+        }
+      },
+      {
+        "ok": true,
+        "ms": 23.196699999971315,
+        "meta": {
+          "verified_bytes": 64,
+          "messages": 1,
+          "tls": true
+        }
+      },
+      {
+        "ok": true,
+        "ms": 42.291100002330495,
+        "meta": {
+          "verified_bytes": 64,
+          "messages": 1,
+          "tls": true
+        }
+      },
+      {
+        "ok": true,
+        "ms": 24.526799999875948,
+        "meta": {
+          "verified_bytes": 64,
+          "messages": 1,
+          "tls": true
+        }
+      },
+      {
+        "ok": true,
+        "ms": 41.51780000029248,
+        "meta": {
+          "verified_bytes": 64,
+          "messages": 1,
+          "tls": true
+        }
+      }
+    ]
+  },
+  {
+    "tool": "fixture-control",
+    "case": "SSH-exec",
+    "repeat": 0,
+    "attempts": 3,
+    "errors": 0,
+    "seconds": 0.29944350000005215,
+    "p50_ms": 55.390199999237666,
+    "max_ms": 57.43409999922733,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 57.43409999922733,
+        "meta": {
+          "verified_bytes": 9,
+          "host_key_verified": true,
+          "exit_status": 0
+        }
+      },
+      {
+        "ok": true,
+        "ms": 33.99329999956535,
+        "meta": {
+          "verified_bytes": 9,
+          "host_key_verified": true,
+          "exit_status": 0
+        }
+      },
+      {
+        "ok": true,
+        "ms": 55.390199999237666,
+        "meta": {
+          "verified_bytes": 9,
+          "host_key_verified": true,
+          "exit_status": 0
+        }
+      }
+    ]
+  },
+  {
+    "tool": "fixture-control",
+    "case": "SFTP-64KiB",
+    "repeat": 0,
+    "attempts": 3,
+    "errors": 0,
+    "seconds": 0.2611813000003167,
+    "p50_ms": 35.241199999290984,
+    "max_ms": 40.73399999833782,
+    "samples": [
+      {
+        "ok": true,
+        "ms": 40.73399999833782,
+        "meta": {
+          "verified_bytes": 131072,
+          "host_key_verified": true
+        }
+      },
+      {
+        "ok": true,
+        "ms": 35.241199999290984,
+        "meta": {
+          "verified_bytes": 131072,
+          "host_key_verified": true
+        }
+      },
+      {
+        "ok": true,
+        "ms": 32.5392999984615,
+        "meta": {
+          "verified_bytes": 131072,
+          "host_key_verified": true
+        }
+      }
+    ]
+  }
+]

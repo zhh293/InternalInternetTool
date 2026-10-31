@@ -1,0 +1,9 @@
+bindAddr = "127.0.0.1"
+bindPort = 17000
+proxyBindAddr = "0.0.0.0"
+auth.method = "token"
+auth.token = "REPLACE_WITH_FRESH_TEST_TOKEN"
+transport.tls.force = true
+transport.tls.certFile = "cert.pem"
+transport.tls.keyFile = "key.pem"
+allowPorts = [{single = 9090}]
