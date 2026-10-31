@@ -1405,7 +1405,7 @@ public final class Client implements AutoCloseable {
       stream.pendingBytes = 0;
     }
     if (notify && stream.mux != null && stream.mux.isActive())
-      stream.mux.writeAndFlush(new Mux.Frame(id, Mux.CLOSE, new byte[0]));
+      Mux.sendClose(stream.mux, id);
     stream.channel.close();
   }
 

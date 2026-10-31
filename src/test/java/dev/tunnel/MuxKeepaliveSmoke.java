@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 public final class MuxKeepaliveSmoke {
   public static void main(String[] args) throws Exception {
     MuxBufferSmoke.main(new String[0]);
+    MuxOrderingSmoke.main(new String[0]);
     pingPongKeepsBothChannelsAlive();
     missingPongClosesChannel();
     System.out.println("Mux keepalive smoke passed");

@@ -78,6 +78,7 @@ public final class MuxBufferSmoke {
     try {
       Mux.sendData(channel, 11, data);
       data.release();
+      channel.runPendingTasks();
       ByteBuf encoded;
       while ((encoded = channel.readOutbound()) != null) channel.writeInbound(encoded);
       Mux.Frame first = channel.readInbound();
@@ -90,6 +91,7 @@ public final class MuxBufferSmoke {
         second.release();
       }
       Mux.sendData(channel, 12, Unpooled.EMPTY_BUFFER);
+      channel.runPendingTasks();
       channel.writeInbound((ByteBuf) channel.readOutbound());
       Mux.Frame empty = channel.readInbound();
       try {
@@ -133,6 +135,7 @@ public final class MuxBufferSmoke {
     ByteBuf payload = Unpooled.buffer(Mux.MAX_PAYLOAD * 2 + 1).writeZero(Mux.MAX_PAYLOAD * 2 + 1);
     try {
       Mux.sendData(channel, 13, payload);
+      channel.runPendingTasks();
       check(counter.flushes == 1, "Split payload flushed once per mux frame");
       ByteBuf first = channel.readOutbound();
       ByteBuf second = channel.readOutbound();

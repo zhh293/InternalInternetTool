@@ -115,7 +115,7 @@ public final class Smoke {
       waitUntilMapped(publicPort);
       roundTrip(publicPort, new byte[] {0, 1, 2, 3, -1, 10, 13});
       byte[] large = new byte[1024 * 1024];
-      for (int i = 0; i < large.length; i++) large[i] = (byte) i;
+      new java.util.Random(0x4d5558L).nextBytes(large);
       roundTrip(publicPort, large);
       concurrentRoundTrips(publicPort);
       client.close();
@@ -161,7 +161,8 @@ public final class Smoke {
       byte[] actual = socket.getInputStream().readNBytes(expected.length);
       if (!Arrays.equals(expected, actual)) {
         throw new AssertionError(
-            "Round trip mismatch: expected=" + expected.length + " actual=" + actual.length);
+            "Round trip mismatch: expected=" + expected.length + " actual=" + actual.length
+                + " firstMismatch=" + Arrays.mismatch(expected, actual));
       }
     }
   }

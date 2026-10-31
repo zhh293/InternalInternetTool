@@ -125,32 +125,38 @@ final class Mux {
   }
 
   static void sendData(Channel channel, int id, ByteBuf payload) {
-    if (!payload.isReadable()) {
-      channel.writeAndFlush(encode(channel.alloc(), id, DATA, payload));
-      return;
-    }
-    int end = payload.writerIndex();
-    for (int offset = payload.readerIndex(); offset < end; offset += MAX_PAYLOAD) {
-      int length = Math.min(MAX_PAYLOAD, end - offset);
-      channel.write(encode(channel.alloc(), id, DATA, payload.slice(offset, length)));
-    }
-    // All fragments from this buffer are ready now; submit them with one immediate flush.
-    channel.flush();
+    enqueueData(channel, id, payload, payload.readableBytes());
   }
 
   // Sends at most maxBytes and returns the number of payload bytes queued to the mux.
   static int sendData(Channel channel, int id, ByteBuf payload, int maxBytes) {
-    int remaining = Math.min(payload.readableBytes(), maxBytes);
-    int sent = remaining;
-    int offset = payload.readerIndex();
-    while (remaining > 0) {
-      int length = Math.min(MAX_PAYLOAD, remaining);
-      channel.write(encode(channel.alloc(), id, DATA, payload.slice(offset, length)));
-      offset += length;
-      remaining -= length;
-    }
-    if (sent > 0) channel.flush();
+    int sent = Math.min(payload.readableBytes(), maxBytes);
+    if (sent > 0) enqueueData(channel, id, payload, sent);
     return sent;
+  }
+
+  private static void enqueueData(Channel channel, int id, ByteBuf payload, int bytes) {
+    ByteBuf retained = payload.retainedSlice(payload.readerIndex(), bytes);
+    try {
+      // Always enqueue, even when called from the mux loop. An inline write can
+      // otherwise overtake data queued by another loop while WINDOW is handled.
+      channel.eventLoop().execute(() -> {
+        try {
+          if (bytes == 0) channel.write(encode(channel.alloc(), id, DATA, retained));
+          for (int offset = 0; offset < bytes; offset += MAX_PAYLOAD) {
+            int length = Math.min(MAX_PAYLOAD, bytes - offset);
+            channel.write(encode(channel.alloc(), id, DATA, retained.slice(offset, length)));
+          }
+          channel.flush();
+        } finally { retained.release(); }
+      });
+    } catch (RuntimeException e) { retained.release(); throw e; }
+  }
+
+  static void sendClose(Channel channel, int id) {
+    Frame frame = new Frame(id, CLOSE, new byte[0]);
+    try { channel.eventLoop().execute(() -> channel.writeAndFlush(frame)); }
+    catch (RuntimeException e) { frame.release(); throw e; }
   }
 
   static void sendWindow(Channel channel, int id, int bytes) {

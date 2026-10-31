@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>dev.tunnel</groupId>
   <artifactId>tunnel</artifactId>
-  <version>0.4.0</version>
+  <version>0.4.1</version>
   <properties>
     <maven.compiler.release>11</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

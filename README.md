@@ -14,7 +14,7 @@
 mvn package
 ```
 
-产物 `target/tunnel-0.4.0.jar` 是包含依赖的 JAR；服务端和客户端使用不同的主类启动。
+产物 `target/tunnel-0.4.1.jar` 是包含依赖的 JAR；服务端和客户端使用不同的主类启动。
 `mvn test` 和 `mvn package` 会自动运行 TCP、功能和 mux 保活冒烟检查；需要跳过检查时可使用 `mvn -DskipTests package`。
 
 ## 准备配置
@@ -24,8 +24,8 @@ mvn package
 服务端需要 PEM 格式的服务器证书和私钥，客户端的 `caFile` 需要信任签发服务器证书的 CA。测试时可以把自签名服务器证书本身作为 `caFile`；正式使用应为服务器域名配置有效的 SAN，并限制私钥与令牌文件的读取权限。服务端会在控制端口、工作端口、可选 HTTP 端口及每条 TCP/UDP 映射端口监听；默认管理 API 只绑定 `127.0.0.1:8088`。
 
 ```sh
-java -cp target/tunnel-0.4.0.jar dev.tunnel.Server server.properties
-java -cp target/tunnel-0.4.0.jar dev.tunnel.Client client.properties
+java -cp target/tunnel-0.4.1.jar dev.tunnel.Server server.properties
+java -cp target/tunnel-0.4.1.jar dev.tunnel.Client client.properties
 ```
 
 示例把 `server:22022` 映射到客户端的 `127.0.0.1:22`。外部访问者使用 `ssh -p 22022 user@server`。UDP 使用 `udp.<名称>=公网端口,内网地址,内网端口`，HTTP 使用 `http.<名称>=域名|别名,内网地址,内网端口`，并让请求访问服务端的 `httpPort`。服务器防火墙和云安全组需要放行控制端口、工作端口、HTTP 端口与公开端口；客户端只需能够主动连接服务器。
@@ -45,7 +45,7 @@ mvn test
 附加边界检查会验证 408/431 响应、持久化失败回滚和 512 条 UDP 流上限：
 
 ```sh
-java -cp "target/test-classes;target/tunnel-0.4.0.jar" dev.tunnel.FeatureSmoke --limits
+java -cp "target/test-classes;target/tunnel-0.4.1.jar" dev.tunnel.FeatureSmoke --limits
 ```
 
 公网 UDP 映射每客户端最多保留 512 个逻辑流；等待本地连接建立期间，每流最多缓存 256 KiB，每客户端最多缓存 8 MiB，超限的数据报会丢弃。HTTP 入口要求在 15 秒内收到完整请求头，头部上限为 64 KiB。管理 API 的映射表单上限为 64 KiB。`health.<name>=http,...` 会向本地目标的 `/` 发起 HTTP GET，并把 2xx/3xx 响应视为健康；需要虚拟主机名时可配置 `http.<name>.hostRewrite`。
@@ -53,8 +53,8 @@ java -cp "target/test-classes;target/tunnel-0.4.0.jar" dev.tunnel.FeatureSmoke -
 性能基线可以运行 `PerformanceSmoke`（32 MiB 预热后重复测量 3 次，每次 256 MiB 单流吞吐，并报告进程/系统 CPU）和 `StressSmoke`（多客户端持续回环、CPU/堆采样）：
 
 ```sh
-java -cp "target/test-classes;target/tunnel-0.4.0.jar" dev.tunnel.PerformanceSmoke
-java -cp "target/test-classes;target/tunnel-0.4.0.jar" dev.tunnel.StressSmoke 2 2 30 2
+java -cp "target/test-classes;target/tunnel-0.4.1.jar" dev.tunnel.PerformanceSmoke
+java -cp "target/test-classes;target/tunnel-0.4.1.jar" dev.tunnel.StressSmoke 2 2 30 2
 ```
 
 `StressSmoke` 参数依次是客户端数、每客户端连接数、持续秒数和 TCP/HTTP 工作连接池 `muxPoolSize`。UDP 默认使用独立的 `udpMuxPoolSize=1` 工作连接，避免 UDP 突发排队阻塞 TCP；将两端该项都设为 `0` 可关闭隔离。压测是本机环回基线，不等价于公网 SLA；连接池大小会影响吞吐和资源占用，应结合目标机器和真实网络单独测量。

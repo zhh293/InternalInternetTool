@@ -1,12 +1,18 @@
 """Exercise the shipped launcher, Unicode paths, init protection and real TCP/TLS relay."""
-import hashlib, os, pathlib, re, shutil, socket, socketserver, subprocess, tarfile, tempfile, threading, time, zipfile
+import hashlib, locale, os, pathlib, re, shutil, socket, socketserver, subprocess, tarfile, tempfile, threading, time, zipfile
 ROOT=pathlib.Path(__file__).resolve().parents[1]
 def main():
     archives=list((ROOT/'target/release').glob('*.tar.gz'))+list((ROOT/'target/release').glob('*.zip'))
     if not archives:raise SystemExit('Build a release archive first')
     # CI verifies its runtime archive; a local universal-only build uses installed Java.
     archive=next((a for a in archives if a.name!='tunnel-java.zip'),archives[0])
-    with tempfile.TemporaryDirectory(prefix='tunnel verify 空格 ',dir=ROOT/'target') as tmp:
+    unicode_paths=True
+    if os.name=='nt':
+        try:'空格'.encode(locale.getencoding())
+        except UnicodeEncodeError:unicode_paths=False
+    prefix='tunnel verify 空格 ' if unicode_paths else 'tunnel verify spaces '
+    if not unicode_paths:print('Windows ANSI locale cannot represent Chinese paths; verifying supported ASCII paths with spaces.')
+    with tempfile.TemporaryDirectory(prefix=prefix,dir=ROOT/'target') as tmp:
         tmp=pathlib.Path(tmp)
         if archive.suffix=='.zip':
             with zipfile.ZipFile(archive) as z:
@@ -36,7 +42,7 @@ def main():
         if not shutil.which('openssl'):
             print('Launcher verified; OpenSSL not found, initialization/TLS integration check skipped explicitly')
             return
-        state=tmp/'状态 server';clientstate=tmp/'状态 client'
+        state=tmp/('状态 server' if unicode_paths else 'state server');clientstate=tmp/('状态 client' if unicode_paths else 'state client')
         reserved=[]
         for i in range(3):
             s=socket.socket();s.bind(('127.0.0.1',0));reserved.append(s)
@@ -99,5 +105,5 @@ def main():
                 except subprocess.TimeoutExpired:child.kill();child.wait()
             for log in logs:log.close()
             target.shutdown();target.server_close()
-        print('Verified:',archive.name,'launcher/version/init/no-overwrite/Unicode paths/TCP-TLS integrity')
+        print('Verified:',archive.name,'launcher/version/init/no-overwrite/'+('Unicode and space paths' if unicode_paths else 'ASCII and space paths')+'/TCP-TLS integrity')
 if __name__=='__main__':main()

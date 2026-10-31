@@ -630,7 +630,7 @@ public final class Server implements AutoCloseable {
     metrics.streamsClosed.incrementAndGet();
     if (stream.timer != null) stream.timer.cancel(false);
     if (notify && stream.mux != null && stream.mux.isActive())
-      stream.mux.writeAndFlush(new Mux.Frame(stream.id, Mux.CLOSE, new byte[0]));
+      Mux.sendClose(stream.mux, stream.id);
     if (stream.visitor != null) stream.visitor.close();
   }
 
@@ -1606,7 +1606,7 @@ public final class Server implements AutoCloseable {
     if (stream.binding.group != null)
       stream.binding.group.udpAffinity.remove(stream.visitor, stream.binding);
     if (stream.mux != null && stream.mux.isActive())
-      stream.mux.writeAndFlush(new Mux.Frame(stream.id, Mux.CLOSE, new byte[0]));
+      Mux.sendClose(stream.mux, stream.id);
   }
 
   private static int nextId(Session session) {
